@@ -1,1 +1,1 @@
-# Inventory-system
+# Point of Sales system
