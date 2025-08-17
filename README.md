@@ -1,1 +1,1 @@
-# Point of Sales system
+# Movie Ticketing
