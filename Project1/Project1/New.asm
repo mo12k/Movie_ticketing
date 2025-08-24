@@ -157,6 +157,7 @@ AdminLoginLoop:
 	mov eax, attempts
 	cmp eax, maxAttempts
 	jl AdminLoginLoop
+	jmp AdminLoginFailed
 
 EmptyInput:
 	mov edx, OFFSET emptyInputMsg
