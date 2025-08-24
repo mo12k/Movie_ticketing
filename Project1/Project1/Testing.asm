@@ -146,7 +146,6 @@ AdminLogin proc
         mov edx, OFFSET inputAdminUsername
         call TrimCR
 
-        mov al, [inputAdminUsername]
         cmp al, 0
         je LoginFailed
 

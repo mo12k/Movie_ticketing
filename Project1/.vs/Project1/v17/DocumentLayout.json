@@ -3,11 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\Testing.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\Testing.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\New.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\New.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Microsoft\\VC\\v170\\BuildCustomizations\\masm.targets||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+      "AbsoluteMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\Testing.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\Testing.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
   "DocumentGroupContainers": [
@@ -17,7 +18,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -25,28 +26,29 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Testing.asm",
               "DocumentMoniker": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\Testing.asm",
               "RelativeDocumentMoniker": "Project1\\Testing.asm",
               "ToolTip": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\Testing.asm",
               "RelativeToolTip": "Project1\\Testing.asm",
-              "ViewState": "AgIAAI0AAAAAAAAAAAAQwJkAAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAAAkAAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-08-16T08:50:47.497Z",
+              "WhenOpened": "2025-08-24T04:28:45.318Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "masm.targets",
-              "DocumentMoniker": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Microsoft\\VC\\v170\\BuildCustomizations\\masm.targets",
-              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Microsoft\\VC\\v170\\BuildCustomizations\\masm.targets",
-              "ToolTip": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Microsoft\\VC\\v170\\BuildCustomizations\\masm.targets",
-              "RelativeToolTip": "..\\..\\..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Microsoft\\VC\\v170\\BuildCustomizations\\masm.targets",
-              "ViewState": "AgIAADcAAAAAAAAAAAAlwEUAAAAEAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003801|",
-              "WhenOpened": "2025-08-23T05:30:06.077Z"
+              "DocumentIndex": 0,
+              "Title": "New.asm",
+              "DocumentMoniker": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\New.asm",
+              "RelativeDocumentMoniker": "Project1\\New.asm",
+              "ToolTip": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\New.asm",
+              "RelativeToolTip": "Project1\\New.asm",
+              "ViewState": "AgIAAJQAAAAAAAAAAAAswKkAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-08-24T02:14:58.511Z",
+              "EditorCaption": ""
             }
           ]
         }
