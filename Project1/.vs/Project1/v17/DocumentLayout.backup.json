@@ -3,16 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\try.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\try.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\Testing.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\Testing.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\New.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\New.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\new1.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\new1.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,7 +14,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Bookmark",
@@ -31,82 +23,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "try.asm",
-              "DocumentMoniker": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\try.asm",
-              "RelativeDocumentMoniker": "Project1\\try.asm",
-              "ToolTip": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\try.asm",
-              "RelativeToolTip": "Project1\\try.asm",
-              "ViewState": "AgIAADYAAAAAAAAAAAAAAEsAAAARAAAAAAAAAA==",
+              "Title": "new1.asm",
+              "DocumentMoniker": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\new1.asm",
+              "RelativeDocumentMoniker": "Project1\\new1.asm",
+              "ToolTip": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\new1.asm*",
+              "RelativeToolTip": "Project1\\new1.asm*",
+              "ViewState": "AgIAAAoCAAAAAAAAAAAwwDMCAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-08-24T10:18:54.47Z",
-              "EditorCaption": ""
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Orientation": 0,
-      "VerticalTabListWidth": 256,
-      "FloatingWindowState": {
-        "Id": "cbf660e2-32db-4247-9897-fa5c0552c302",
-        "Display": 0,
-        "X": 14,
-        "Y": 316,
-        "Width": 778,
-        "Height": 778,
-        "WindowState": 0
-      },
-      "DocumentGroups": [
-        {
-          "DockedWidth": 200,
-          "SelectedChildIndex": 0,
-          "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "New.asm",
-              "DocumentMoniker": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\New.asm",
-              "RelativeDocumentMoniker": "Project1\\New.asm",
-              "ToolTip": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\New.asm",
-              "RelativeToolTip": "Project1\\New.asm",
-              "ViewState": "AgIAALgAAAAAAAAAAAAlwNcAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-08-24T10:18:55.99Z",
-              "EditorCaption": ""
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Orientation": 0,
-      "VerticalTabListWidth": 256,
-      "FloatingWindowState": {
-        "Id": "fbb4c3e4-942f-45ca-85a8-27ed64d430cb",
-        "Display": 0,
-        "X": -66,
-        "Y": 97,
-        "Width": 778,
-        "Height": 778,
-        "WindowState": 0
-      },
-      "DocumentGroups": [
-        {
-          "DockedWidth": 200,
-          "SelectedChildIndex": 0,
-          "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Testing.asm",
-              "DocumentMoniker": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\Testing.asm",
-              "RelativeDocumentMoniker": "Project1\\Testing.asm",
-              "ToolTip": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\Testing.asm",
-              "RelativeToolTip": "Project1\\Testing.asm",
-              "ViewState": "AgIAAEsAAAAAAAAAAAAAAGcAAAASAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-08-24T11:03:06.281Z",
+              "WhenOpened": "2025-08-25T12:43:01.321Z",
               "EditorCaption": ""
             }
           ]

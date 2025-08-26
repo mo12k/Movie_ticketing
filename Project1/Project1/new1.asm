@@ -15,8 +15,6 @@ Include Irvine32.inc
 		   BYTE " \____|_|_| |_|\___|_| |_| |_|\__,_|                                      ",0Dh,0Ah
 		   BYTE "=================================================================================",0Dh,0Ah,0
 
-
-	
     mainMenuMsg     BYTE 0dh, 0ah, "MAIN MENU:", 0dh, 0ah
                     BYTE "1. Admin Login", 0dh, 0ah
                     BYTE "2. User Login", 0dh, 0ah
@@ -44,9 +42,7 @@ Include Irvine32.inc
 	exitMsg         BYTE 0dh, 0ah, "Exiting the program. Goodbye!", 0dh, 0ah, 0
 	InvalidChoice   BYTE 0dh, 0ah, "Invalid choice. Please select a valid option.", 0dh, 0ah, 0
 	continueMsg     BYTE 0dh, 0ah, "Press any key to return to main menu...", 0dh, 0ah, 0
-	emptyInputMsg     BYTE 0dh, 0ah, "Input cannot be empty. Please try again.", 0dh, 0ah, 0
-	debugMsg BYTE "Stored username: ", 0
-	debugMsg2 BYTE "Input username: ", 0
+	emptyInputMsg   BYTE 0dh, 0ah, "Input cannot be empty. Please try again.", 0dh, 0ah, 0
 
 	;admin credentials
 	adminUsername BYTE "admin", 0
@@ -62,19 +58,19 @@ Include Irvine32.inc
 	; Size of a single user record
 	USER_RECORD_SIZE EQU USERNAME_SIZE + PASSWORD_SIZE + EMAIL_SIZE + PHONE_SIZE 
 
-	;user data storage
+	;user data storage - structured array
 	userData BYTE MAX_USERS * USER_RECORD_SIZE DUP(0)
 
-	;Predefined users 
+	;Predefined user data for initialization
 	predefUser1 BYTE "user1", 0
 	predefPass1 BYTE "pass1", 0
 	predefEmail1 BYTE "user1@gmail.com",0
 	predefPhone1 BYTE "0123456789",0
 
-	predefUser2		BYTE "user2", 0
-	predefPass2		BYTE "pass2", 0
-	predefEmail2	BYTE "user2@gmail.com",0
-	predefPhone2	BYTE "0123456987",0
+	predefUser2 BYTE "user2", 0
+	predefPass2 BYTE "pass2", 0
+	predefEmail2 BYTE "user2@gmail.com",0
+	predefPhone2 BYTE "0123456987",0
 
 	userCount DWORD 2 ; Number of predefined users
 	currenUser BYTE USERNAME_SIZE DUP(0) ; Buffer for current user operations
@@ -93,93 +89,175 @@ Include Irvine32.inc
 
 .code
 main PROC
-
-	; Initialize predefined users
-	call InitPredefinedUsers
-
-	; Display banner
+	; Initialize userData with predefined users
+	call InitializeUserData
 	call Clrscr
 	call MainMenu
-
-	; Further processing based on user choice can be added here
 	exit
 main ENDP
 
-InitPredefinedUsers PROC
-	mov esi, OFFSET predefUser1
-	mov edi, OFFSET userData
-	call CopyString
-
-	mov esi, OFFSET predefPass1
-	mov edi, OFFSET userData + USERNAME_SIZE
-	call CopyString
-
-	mov esi, OFFSET predefEmail1
-	mov edi, OFFSET userData + USERNAME_SIZE + PASSWORD_SIZE
-	call CopyString
-
-	mov esi, OFFSET predefPhone1
-	mov edi, OFFSET userData + USERNAME_SIZE + PASSWORD_SIZE + EMAIL_SIZE
-	call CopyString
-
-	; Second user
-	mov esi, OFFSET predefUser2
-	mov edi, OFFSET userData + USER_RECORD_SIZE
-	call CopyString
-
-	mov esi, OFFSET predefPass2
-	mov edi, OFFSET userData + USER_RECORD_SIZE + USERNAME_SIZE
-	call CopyString
-
-	mov esi, OFFSET predefEmail2
-	mov edi, OFFSET userData + USER_RECORD_SIZE + USERNAME_SIZE + PASSWORD_SIZE
-	call CopyString
-
-	mov esi, OFFSET predefPhone2
-	mov edi, OFFSET userData + USER_RECORD_SIZE + USERNAME_SIZE + PASSWORD_SIZE + EMAIL_SIZE
-	call CopyString
-	ret
-	
-InitPredefinedUsers ENDP
-
-;Helper procedure to copy null-terminated string from ESI to EDI
-CopyString PROC
+; Initialize userData array with predefined users
+InitializeUserData PROC
 	push eax
 	push ecx
+	push esi
+	push edi
+
+	; Copy user1 data to userData[0]
+	mov edi, OFFSET userData                    ; Point to first user record
+	
+	; Copy username
+	mov esi, OFFSET predefUser1
+	mov ecx, USERNAME_SIZE
+	call CopyStringToBuffer
+	
+	; Copy password  
+	add edi, USERNAME_SIZE                      ; Move to password field
+	mov esi, OFFSET predefPass1
+	mov ecx, PASSWORD_SIZE
+	call CopyStringToBuffer
+	
+	; Copy email
+	add edi, PASSWORD_SIZE                      ; Move to email field
+	mov esi, OFFSET predefEmail1
+	mov ecx, EMAIL_SIZE
+	call CopyStringToBuffer
+	
+	; Copy phone
+	add edi, EMAIL_SIZE                         ; Move to phone field
+	mov esi, OFFSET predefPhone1
+	mov ecx, PHONE_SIZE
+	call CopyStringToBuffer
+
+	; Copy user2 data to userData[1]
+	mov edi, OFFSET userData
+	add edi, USER_RECORD_SIZE                   ; Point to second user record
+	
+	; Copy username
+	mov esi, OFFSET predefUser2
+	mov ecx, USERNAME_SIZE
+	call CopyStringToBuffer
+	
+	; Copy password
+	add edi, USERNAME_SIZE
+	mov esi, OFFSET predefPass2
+	mov ecx, PASSWORD_SIZE
+	call CopyStringToBuffer
+	
+	; Copy email
+	add edi, PASSWORD_SIZE
+	mov esi, OFFSET predefEmail2
+	mov ecx, EMAIL_SIZE
+	call CopyStringToBuffer
+	
+	; Copy phone
+	add edi, EMAIL_SIZE
+	mov esi, OFFSET predefPhone2
+	mov ecx, PHONE_SIZE
+	call CopyStringToBuffer
+
+	pop edi
+	pop esi
+	pop ecx
+	pop eax
+	ret
+InitializeUserData ENDP
+
+; Helper procedure to copy string to buffer
+CopyStringToBuffer PROC
+	; ESI = source string, EDI = destination buffer, ECX = buffer size
+	push eax
+	push ebx
+	push ecx
+	push esi
+	push edi
+	
+	; Clear the destination buffer first
+	mov al, 0
+	push edi
+	rep stosb
+	pop edi
+	
+	; Copy string until null terminator or buffer limit
+	mov ebx, ecx                                ; Save buffer size
+	dec ebx                                     ; Leave space for null terminator
 
 CopyLoop:
-    mov al, [esi]
-    mov [edi], al
-    cmp al, 0
-    je CopyEnd
-    inc esi
-    inc edi
-    jmp CopyLoop
+	cmp ebx, 0
+	je CopyDone
+	mov al, [esi]
+	cmp al, 0
+	je CopyDone
+	mov [edi], al
+	inc esi
+	inc edi
+	dec ebx
+	jmp CopyLoop
 
-CopyEnd:
-    pop ecx
-    pop eax
-    ret
+CopyDone:
+	pop edi
+	pop esi
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+CopyStringToBuffer ENDP
 
-CopyString ENDP
+; Get user data by index
+GetUserData PROC
+	; Input: EBX = user index (0-based)
+	; Output: EDI = pointer to user record
+	push eax
+	
+	mov eax, USER_RECORD_SIZE
+	mul ebx                                     ; EAX = index * record_size
+	mov edi, OFFSET userData
+	add edi, eax                                ; EDI points to user[index]
+	
+	pop eax
+	ret
+GetUserData ENDP
 
-DebugPrint PROC
-    ; ESI = buffer, ECX = max size
-PrintLoop:
-    mov al, [esi]
-    cmp al, 0
-    je Done
-    call WriteChar
-    inc esi
-    loop PrintLoop
-Done:
-    ret
-DebugPrint ENDP
+; Get specific field from user record
+GetUserField PROC
+	; Input: EBX = user index, EAX = field type (0=username, 1=password, 2=email, 3=phone)
+	; Output: EDI = pointer to field
+	push ecx
+	
+	call GetUserData                            ; EDI = pointer to user record
+	
+	cmp eax, 0
+	je GetUsername
+	cmp eax, 1
+	je GetPassword
+	cmp eax, 2
+	je GetEmail
+	cmp eax, 3
+	je GetPhone
+	jmp GetFieldEnd
 
+GetUsername:
+	; EDI already points to username (offset 0)
+	jmp GetFieldEnd
+
+GetPassword:
+	add edi, USERNAME_SIZE
+	jmp GetFieldEnd
+
+GetEmail:
+	add edi, USERNAME_SIZE + PASSWORD_SIZE
+	jmp GetFieldEnd
+
+GetPhone:
+	add edi, USERNAME_SIZE + PASSWORD_SIZE + EMAIL_SIZE
+
+GetFieldEnd:
+	pop ecx
+	ret
+GetUserField ENDP
 
 MainMenu PROC
 	call Clrscr
-
 	
 MainMenuLoop:
 	mov edx, OFFSET banner
@@ -205,11 +283,13 @@ MainMenuLoop:
 	jmp MainMenuLoop
 
 AdminLoginOption:
-	call AdminLogin
+	mov ebx, 0		; 0 = admin login
+	call PerformLogin
 	jmp MainMenuLoop
 
 UserLoginOption:
-	call UserLogin
+	mov ebx, 1		; 1 = user login
+	call PerformLogin
 	jmp MainMenuLoop
 
 UserRegOption:
@@ -224,79 +304,27 @@ ExitProgram:
 
 MainMenu ENDP
 
-;Admin login procedure
-AdminLogin PROC
-	mov edx, OFFSET adminLoginHeader
-	call WriteString
-	mov attempts, 0
-
-AdminLoginLoop:
-	mov eax, attempts
-	cmp eax, maxAttempts
-	jge AdminLoginFailed
-
-	call GetCredentials
-
-	; Check for empty inputs
-	mov esi, OFFSET inputUsername
-	call IsEmptyString
-	cmp eax, 1
-	je EmptyInputAdmin
-
-	mov esi, OFFSET inputPassword
-	call IsEmptyString
-	cmp eax, 1
-	je EmptyInputAdmin
-
-	; Compare with admin credentials
-	call ValidateAdminCredentials ;returns 1 if match, 0 if not
-	cmp eax, 1 
-	je AdminLoginSuccessful
-
-	;Login failed
-	inc attempts
-	mov edx, OFFSET loginFailed
-	call WriteString
+; Combined Login Procedure (replaces AdminLogin and UserLogin)
+; Input: EBX = login type (0 = admin, 1 = user)
+PerformLogin PROC
+	push eax
+	push edx
 	
-
-	;Check if max attempts reached
-	mov eax, attempts
-	cmp eax, maxAttempts
-	jl AdminLoginLoop
-	jmp AdminLoginEnd
-
-EmptyInputAdmin:
-	mov edx, OFFSET emptyInputMsg
-	call WriteString
-	jmp AdminLoginLoop
-
-AdminLoginSuccessful:
-	mov edx, OFFSET adminLoginSuccess
-	call WriteString
-
-AdminLoginFailed:
-	mov edx, OFFSET maxAttemptsMsg
-	call WriteString
-	
-
-AdminLoginEnd:
-	mov edx, OFFSET continueMsg
-	call WriteString
-	call ReadChar
-	call Clrscr
-	ret
-AdminLogin ENDP
-
-UserLogin PROC
+	; Display appropriate header
+	cmp ebx, 0
+	je DisplayAdminHeader
 	mov edx, OFFSET userLoginHeader
+	jmp DisplayHeader
+DisplayAdminHeader:
+	mov edx, OFFSET adminLoginHeader
+DisplayHeader:
 	call WriteString
-	; Reset attempt counter
 	mov attempts, 0
 
-UserLoginLoop:
+LoginLoop:
 	mov eax, attempts
 	cmp eax, maxAttempts
-	jge UserLoginFailed
+	jae MaxAttemptsReached		; Changed: jge to jae and renamed label
 
 	call GetCredentials
 
@@ -304,61 +332,60 @@ UserLoginLoop:
 	mov esi, OFFSET inputUsername
 	call IsEmptyString
 	cmp eax, 1
-	je EmptyInputUser
+	je EmptyInput
 
 	mov esi, OFFSET inputPassword
 	call IsEmptyString
 	cmp eax, 1
-	je EmptyInputUser
+	je EmptyInput
 
-	;Validate user credentials
-	call ValidateUserCredentials ;returns 1 if match, 0 if not
-	cmp eax, 1
-	je UserLoginSuccessful
+	; Validate credentials based on login type
+	call ValidateCredentials	; EBX already contains login type
+	cmp eax, 1 
+	je LoginSuccessful
 
-	;Login failed
+	; Login failed
 	inc attempts
 	mov edx, OFFSET loginFailed
 	call WriteString
-
-	;Check if max attempts reached
+	
+	; Check if max attempts reached
 	mov eax, attempts
 	cmp eax, maxAttempts
-	jl UserLoginLoop
-	jmp UserLoginEnd
+	jl LoginLoop
+	jmp LoginEnd
 
-EmptyInputUser:
+EmptyInput:
 	mov edx, OFFSET emptyInputMsg
 	call WriteString
-	jmp UserLoginLoop
+	jmp LoginLoop
 
-UserLoginSuccessful:
-	;copy username to currentUser buffer
-	mov esi, OFFSET inputUsername
-	mov edi, OFFSET currenUser
-	mov ecx, USERNAME_SIZE
-	rep movsb
-
-	;Display success message
+LoginSuccessful:
+	; Display appropriate success message
+	cmp ebx, 0
+	je DisplayAdminSuccess
 	mov edx, OFFSET userLoginSuccess
+	jmp DisplaySuccess
+DisplayAdminSuccess:
+	mov edx, OFFSET adminLoginSuccess
+DisplaySuccess:
 	call WriteString
-	mov edx, OFFSET currenUser
-	call WriteString
-	call Crlf
-	call UserLoginEnd
+	jmp LoginEnd
 
-UserLoginFailed:
+MaxAttemptsReached:		; Changed: renamed from LoginFailed
 	mov edx, OFFSET maxAttemptsMsg
 	call WriteString
 
-UserLoginEnd:
+LoginEnd:
 	mov edx, OFFSET continueMsg
 	call WriteString
 	call ReadChar
 	call Clrscr
+	
+	pop edx
+	pop eax
 	ret
-
-UserLogin ENDP
+PerformLogin ENDP
 
 GetCredentials PROC
 	;Clear input buffers
@@ -387,89 +414,83 @@ GetCredentials PROC
 	ret
 GetCredentials ENDP
 
-ValidateAdminCredentials PROC
-	;Compare username
-	mov esi, OFFSET inputUsername
-	mov edi, OFFSET adminUsername
-	call CompareString
-	cmp eax,0
-	jne NotMatchAdmin
-
-	;Compare password
-	mov esi, OFFSET inputPassword
-	mov edi, OFFSET adminPassword
-	call CompareString
-	cmp eax,0
-	jne NotMatchAdmin
-
-	;Both match - return 1
-	mov eax,1
-	ret
-
-NotMatchAdmin:
-	mov eax,0
-	ret
-ValidateAdminCredentials ENDP
-
-ValidateUserCredentials PROC
+; Combined Credential Validation (replaces ValidateAdminCredentials and ValidateUserCredentials)
+; Input: EBX = validation type (0 = admin, 1 = user)
+; Output: EAX = 1 if valid, 0 if invalid
+ValidateCredentials PROC
 	push ebx
 	push ecx
-	push esi
 	push edi
-	push edx
+	
+	cmp ebx, 0
+	je ValidateAdmin
+	jmp ValidateUser
 
-	mov ebx,0 ;user index 0
+ValidateAdmin:
+	; Compare username
+	mov esi, OFFSET inputUsername
+	mov edi, OFFSET adminUsername
+	call CompareStrings
+	cmp eax, 0
+	jne CredentialsInvalid
+
+	; Compare password
+	mov esi, OFFSET inputPassword
+	mov edi, OFFSET adminPassword
+	call CompareStrings
+	cmp eax, 0
+	jne CredentialsInvalid
+
+	; Both match
+	mov eax, 1
+	jmp ValidateEnd
+
+ValidateUser:
+	mov ebx, 0		; Index for users
 
 ValidateUserLoop:
 	cmp ebx, userCount
-	jge UserNoFound
+	jae CredentialsInvalid		; Changed: jge to jae
 
-	;Calculate user record position
-	mov eax, ebx
-	mov ecx, USER_RECORD_SIZE
-	mul ecx
-	mov esi, OFFSET userData
-	add esi, eax		; ESI points to current username field
-
-	call DebugPrint
-	pop esi
-
-	;Compare username 
-	mov edi, OFFSET inputUsername
-	call CompareString
-	cmp eax,0
-	jne NextUser
-
-	;Username matches, now check password
-	add esi, USERNAME_SIZE ; Move to password field
-	mov edi, OFFSET inputPassword
-	call CompareString
-	cmp eax,0
-	je UserFound
+	; Get username field for current user
+	mov eax, 0		; 0 = username field
+	call GetUserField	; EDI = pointer to username
+	
+	; Compare username
+	mov esi, OFFSET inputUsername
+	call CompareStrings
+	cmp eax, 0
+	jne NextUser		; Username doesn't match
+	
+	; Get password field for current user
+	mov eax, 1		; 1 = password field
+	call GetUserField	; EDI = pointer to password
+	
+	; Compare password
+	mov esi, OFFSET inputPassword
+	call CompareStrings
+	cmp eax, 0
+	je CredentialsValid	; Both match!
 
 NextUser:
 	inc ebx
 	jmp ValidateUserLoop
 
-UserFound:
-	;User found and password matches
-	mov eax,1
-	jmp ValidateUserEnd
+CredentialsValid:
+	mov eax, 1
+	jmp ValidateEnd
 
-UserNoFound:
-	;No matching user found
-	mov eax,0
+CredentialsInvalid:
+	mov eax, 0
 
-ValidateUserEnd:
-	pop edx
+ValidateEnd:
 	pop edi
-	pop esi
 	pop ecx
 	pop ebx
 	ret
-ValidateUserCredentials ENDP
+ValidateCredentials ENDP
 
-CompareString PROC
+CompareStrings PROC
 	; Compares two null-terminated strings
 	;ESI = first string, EDI = second string
 	; Returns 0 if equal, non-zero if not
@@ -480,28 +501,26 @@ CompareLoop:
 	mov al, [esi]
 	mov bl, [edi]
 	cmp al, bl
-	jne NotEqualAdmin
+	jne NotEqual
 
 	cmp al, 0
-	je EqualAdmin
+	je Equal
 	inc esi
 	inc edi
 	jmp CompareLoop
 
-NotEqualAdmin:
+NotEqual:
 	mov eax, 1
-	jmp CompareEndAdmin
-	
+	jmp CompareEnd
 
-EqualAdmin:
+Equal:
 	mov eax, 0
 
-CompareEndAdmin:
+CompareEnd:
 	pop ecx
 	pop ebx
 	ret
-
-CompareString ENDP
+CompareStrings ENDP
 
 IsEmptyString PROC
 	push ebx
@@ -540,6 +559,6 @@ ClearBuffer PROC
 	pop edi
 	pop eax
 	ret
-
 ClearBuffer ENDP
+
 End main
