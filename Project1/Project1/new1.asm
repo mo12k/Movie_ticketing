@@ -53,19 +53,21 @@ Include Irvine32.inc
 	maxAttemptsMsg  BYTE "Maximum login attempts exceeded. Access denied.", 0dh, 0ah, 0
 
 	;User portal messages
-	userPortalHeader BYTE 0dh, 0ah, "=== USER PORTAL ===",0dh, 0ah,0
-	portalOption1    BYTE "1. View Profile", 0dh, 0ah, 0
-	portalOption2    BYTE "2. Edit Profile", 0dh, 0ah, 0
-	portalOption3    BYTE "3. Booking Movie Tickets", 0dh, 0ah, 0
-	portalOption4    BYTE "4. Logout", 0dh, 0ah,
+	userPortalHeader BYTE 0dh, 0ah, "=== USER PORTAL ===",0dh, 0ah
+					 BYTE "1. View Profile", 0dh, 0ah
+					 BYTE "2. Booking Movie Tickets", 0dh, 0ah
+					 BYTE "3. Logout", 0dh, 0ah
+					 BYTE "Please select an option (1-3): ", 0
 
 	;Profile display messages
 	profileHeader    BYTE 0dh, 0ah, "=== USER PROFILE ===", 0dh, 0ah, 0
 	profileUsername  BYTE "Username: ", 0
 	profileEmail     BYTE "Email: ", 0
 	profilePhone     BYTE "Phone: ", 0
+	profileRewards   BYTE "Reward Points: ", 0
 	profileNotFound  BYTE "Error: User profile not found!", 0dh, 0ah, 0
 	returnToPortal   BYTE 0dh, 0ah, "Press any key to return to User Portal...", 0dh, 0ah, 0
+	editProfilePrompt BYTE "Do you want to edit your profile? (Y/N): ", 0
 
 	;Profile editing messages
 	editProfileHeader BYTE 0dh, 0ah, "=== EDIT PROFILE ===", 0dh, 0ah, 0
@@ -87,29 +89,6 @@ Include Irvine32.inc
 	wrongPassword     BYTE "Current password is incorrect!", 0dh, 0ah, 0
 	sameAsCurrentMsg  BYTE "New value is same as current value!", 0dh, 0ah, 0
 
-	;Booking portal messages
-	bookingHeader    BYTE 0dh, 0ah, "=== BOOKING MOVIE ===", 0dh, 0ah, 0
-	bookingOption1   BYTE "1. 2D", 0dh, 0ah, 0
-	bookingOption2   BYTE "2. IMAX", 0dh, 0ah, 0
-	bookingOption3   BYTE "3. Back to User Portal", 0dh, 0ah, 0
-
-	;Ticket type messages
-	ticketTypePrompt BYTE "Select an option: ", 0
-	ticketType1      BYTE "1. Standard (RM12)", 0dh, 0ah, 0
-	ticketType2      BYTE "2. Premium (RM20)", 0dh, 0ah, 0
-	ticketType3      BYTE "3. Couple (RM24)", 0dh,0
-
-	;Ticket quantity messages
-	ticketQtyPrompt BYTE "Enter number of tickets: ", 0
-	ticketQtyError  BYTE 0dh, 0ah, "Invalid quantity. Please enter a positive number.", 0dh, 0ah, 0
-
-	;Movie selection messages
-	movieSelectPrompt BYTE "Select Movie (1-3): ", 0
-	movie             BYTE "1. Tatanic", 0dh, 0ah
-					  BYTE "2. Engers", 0dh, 0ah
-					  BYTE "3. Avatai", 0dh, 0ah, 0
-
-
 	;Other messages
 	exitMsg         BYTE 0dh, 0ah, "Exiting the program. Goodbye!", 0dh, 0ah, 0
 	InvalidChoice   BYTE 0dh, 0ah, "Invalid choice. Please select a valid option.", 0dh, 0ah, 0
@@ -126,9 +105,10 @@ Include Irvine32.inc
 	PASSWORD_SIZE EQU 20
 	EMAIL_SIZE EQU 30
 	PHONE_SIZE EQU 15
+	REWARD_POINTS_SIZE EQU 4
 
 	; Size of a single user record
-	USER_RECORD_SIZE EQU USERNAME_SIZE + PASSWORD_SIZE + EMAIL_SIZE + PHONE_SIZE 
+	USER_RECORD_SIZE EQU USERNAME_SIZE + PASSWORD_SIZE + EMAIL_SIZE + PHONE_SIZE + REWARD_POINTS_SIZE
 
 	;user data storage - structured array
 	userData BYTE MAX_USERS * USER_RECORD_SIZE DUP(0)
@@ -138,11 +118,13 @@ Include Irvine32.inc
 	predefPass1 BYTE "pass1", 0
 	predefEmail1 BYTE "user1@gmail.com",0
 	predefPhone1 BYTE "0123456789",0
+	predefReward1 WORD 100 ; Initial reward points for user1
 
 	predefUser2 BYTE "user2", 0
 	predefPass2 BYTE "pass2", 0
 	predefEmail2 BYTE "user2@gmail.com",0
 	predefPhone2 BYTE "0123456987",0
+	predefReward2 WORD 150 ; Initial reward points for user2
 
 	userCount DWORD 2 ; Number of predefined users
 	currentUser BYTE USERNAME_SIZE DUP(0) ; Buffer for current logged-in user
@@ -164,6 +146,126 @@ Include Irvine32.inc
 	; Password masking constants
 	BACKSPACE_KEY EQU 8
 	ENTER_KEY EQU 13
+
+	;Booking portal messages
+	bookingHeader		BYTE 0dh, 0ah, "======= BOOKING MOVIE =======", 0dh, 0ah
+						BYTE "1. 2D", 0dh, 0ah
+						BYTE "2. IMAX", 0dh, 0ah
+						BYTE "3. Back to User Portal", 0dh, 0ah
+						BYTE "Select an option (1-3): ",0
+	;2D Movie Menu
+	movies2D			BYTE "============ 2D MOVIES ============", 0dh, 0ah
+						BYTE "1. Avatai: The Way of Fire", 0dh, 0ah
+						BYTE "2. Evengers: End Game ", 0dh, 0ah
+						BYTE "3. Tatanic", 0dh, 0ah
+						BYTE "4. Back to User Portal", 0dh, 0ah
+						BYTE "===================================",0dh,0ah
+						BYTE "Select a movie (1-4): ",0
+
+	;IMAX Movie Menu
+	moviesIMAX			BYTE "=========== IMAX MOVIES ===========", 0dh, 0ah
+						BYTE "1. Avatar: The Way of Water", 0dh, 0ah
+						BYTE "2. Evengers: End Game", 0dh, 0ah
+						BYTE "3. Tatanic", 0dh, 0ah
+						BYTE "4. Back to User Portal", 0dh, 0ah
+						BYTE "===================================",0dh,0ah
+						BYTE "Select a movie (1-4): ",0
+
+	;showtimes menu
+	showtimesMenu		BYTE "=========== SHOWTIMES ===========",0dh,0ah
+						BYTE "1. 10:00 AM", 0dh, 0ah
+						BYTE "2. 1:00 PM", 0dh, 0ah
+						BYTE "3. 4:00 PM", 0dh, 0ah
+						BYTE "4. 7:00 PM", 0dh, 0ah
+						BYTE "5. Back to Movie Selection", 0dh, 0ah
+						BYTE "===================================",0dh,0ah
+						BYTE "Select a showtime (1-5): ",0
+
+	;Seat Type Menu Headers 
+	seatMenu2DHeader    BYTE "=========== SEAT Selection(2D) ===========",0dh,0ah
+						BYTE "1. Standard (RM12)", 0dh, 0ah
+						BYTE "2. Premium (RM18)", 0dh, 0ah
+						BYTE "3. Couple (RM24)", 0dh, 0ah
+						BYTE "4. Back to Showtime Selection", 0dh, 0ah
+						BYTE "===================================",0dh,0ah,0
+
+	seatMenuIMAXHeader  BYTE "=========== SEAT Selection(IMAX) ===========",0dh,0ah
+						BYTE "1. Standard (RM20)", 0dh, 0ah
+						BYTE "2. Premium (RM30)", 0dh, 0ah
+						BYTE "3. Couple (RM40)", 0dh, 0ah
+						BYTE "4. Back to Showtime Selection", 0dh, 0ah
+						BYTE "===================================",0dh,0ah,0
+
+	; Separate selection prompt
+	seatSelectionPrompt BYTE "Select a seat type (1-4): ",0
+
+	;Booking confirmation messages
+	bookingConfirm      BYTE 0dh, 0ah, "Booking successful! Enjoy your movie.", 0dh, 0ah, 0
+	bookingFailed       BYTE 0dh, 0ah, "Booking failed! Please try again.", 0dh, 0ah, 0
+	bookingSummary      BYTE "============= BOOKING SUMMARY =============", 0dh, 0ah, 0
+	movieSelected     BYTE "Movie: ", 0
+	showtimeSelected  BYTE "Showtime: ", 0
+	seatTypeSelected  BYTE "Seat Type: ", 0
+	noSeatAvailable     BYTE "Sorry. No seats available for this showtime!!!.", 0dh, 0ah, 0
+	seatsAvailable BYTE "Available seats: ", 0
+
+	;Movie names
+	movieNames BYTE "Avatar: The Way of Fire",0dh,0ah
+			   BYTE "Evengers: End Game",0dh,0ah
+			   BYTE "Tatanic",0dh,0ah,0
+
+	;Seat type names
+	seatTypeNames BYTE "Standard",0dh,0ah
+				  BYTE "Premium",0dh,0ah
+				  BYTE "Couple",0dh,0ah,0
+
+	;Seat prices - 2D
+	seatPrices2D DWORD 12, 18, 24
+
+	;Seat prices - IMAX
+	seatPricesIMAX DWORD 20, 30, 40
+
+	;Available seats for each showtime (10:00 AM, 1:00 PM, 4:00 PM, 7:00 PM)
+	availableSeats	DWORD 50, 20, 30   ;- Standard, premium, couple for 10:00 AM
+					DWORD 50, 20, 30   ;- Standard, premium, couple for 1:00 PM
+					DWORD 50, 20, 30   ;- Standard, premium, couple for 4:00 PM
+					DWORD 50, 20, 30   ;- Standard, premium, couple for 7:00 PM
+
+	;Current booking selections
+	currentMovieType DWORD ? ; 1=2D, 2=IMAX
+	currentMovie	 DWORD ? ; 0=Avatar, 1=Evengers, 2=Tatanic
+	currentShowtime  DWORD ? ; 0=10AM, 1=1PM, 2=4PM, 3=7PM
+	currentSeatType  DWORD ? ; 0=Standard, 1=Premium, 2=Couple
+	currentSeatQty   DWORD ? ; Number of seats to book
+
+	;Seat quantity prompt
+	; Fix the data section - correct the variable name
+	;Seat quantity prompt
+	seatQtyPrompt BYTE "Enter number of seats to book(1-10): ",0
+	insufficientSeats BYTE "Sorry, not enough seats available. Please choose a smaller quantity.", 0dh, 0ah, 0
+	invalidQtyMsg BYTE "Invalid seat quantity. Please enter a number between 1 and 10.",0dh,0ah,0  
+
+	;Input variables
+	userChoice DWORD ?
+
+	;String buffers
+	tempStr		BYTE 50 DUP(0)
+	newline BYTE 0dh, 0ah, 0
+
+	seatsBooked      BYTE "Quantity: ", 0
+	seatsText        BYTE " seats", 0
+	totalPriceText   BYTE "Total Price: RM", 0
+	confirmBookingPrompt BYTE "Confirm booking? (Y/N): ", 0
+
+	showtime1Text    BYTE "10:00 AM", 0
+	showtime2Text    BYTE "1:00 PM", 0
+	showtime3Text    BYTE "4:00 PM", 0
+	showtime4Text    BYTE "7:00 PM", 0
+	standardText     BYTE "Standard", 0
+	premiumText      BYTE "Premium", 0
+	coupleText       BYTE "Couple", 0
+
+	
 
 .code
 main PROC
@@ -207,6 +309,11 @@ InitializeUserData PROC
 	mov ecx, PHONE_SIZE
 	call CopyStringToBuffer
 
+	; Copy reward points (as WORD, not string)
+	add edi, PHONE_SIZE                        ; Move to reward points field
+	mov ax, predefReward1                      ; Load reward points value
+	mov WORD PTR [edi], ax                     ; Store as WORD
+
 	; Copy user2 data to userData[1]
 	mov edi, OFFSET userData
 	add edi, USER_RECORD_SIZE                   ; Point to second user record
@@ -233,6 +340,11 @@ InitializeUserData PROC
 	mov esi, OFFSET predefPhone2
 	mov ecx, PHONE_SIZE
 	call CopyStringToBuffer
+
+	; Copy reward points (as WORD, not string)
+	add edi, PHONE_SIZE                        ; Move to reward points field
+	mov ax, predefReward2                      ; Load reward points value
+	mov WORD PTR [edi], ax                     ; Store as WORD
 
 	pop edi
 	pop esi
@@ -312,6 +424,8 @@ GetUserField PROC
 	je GetEmail
 	cmp eax, 3
 	je GetPhone
+	cmp eax, 4
+	je GetRewardPoints
 	jmp GetFieldEnd
 
 GetUsername:
@@ -328,6 +442,11 @@ GetEmail:
 
 GetPhone:
 	add edi, USERNAME_SIZE + PASSWORD_SIZE + EMAIL_SIZE
+	jmp GetFieldEnd
+
+GetRewardPoints:
+	add edi, USERNAME_SIZE + PASSWORD_SIZE + EMAIL_SIZE + PHONE_SIZE
+	jmp GetFieldEnd
 
 GetFieldEnd:
 	pop ecx
@@ -1055,15 +1174,7 @@ UserPortalLoop:
 	call Clrscr
 	mov edx, OFFSET userPortalHeader
 	call WriteString
-	mov edx, OFFSET portalOption1
-	call WriteString
-	mov edx, OFFSET portalOption2
-	call WriteString
-	mov edx, OFFSET portalOption3
-	call WriteString
-	mov edx, OFFSET portalOption4
-	call WriteString
-	mov edx, OFFSET ticketTypePrompt
+	mov edx, OFFSET menuChoice
 	call WriteString
 	call ReadChar
 	call WriteChar
@@ -1071,10 +1182,8 @@ UserPortalLoop:
 	cmp al, '1'
 	je ViewProfileOption
 	cmp al, '2'
-	je EditProfileOption
-	cmp al, '3'
 	je BookingOption
-	cmp al, '4'
+	cmp al, '3'
 	je LogoutOption
 	; Invalid choice handling
 	mov edx, OFFSET InvalidChoice
@@ -1084,11 +1193,6 @@ UserPortalLoop:
 ViewProfileOption:
 	; Display user profile
 	call ViewUserProfile
-	jmp UserPortalLoop
-
-EditProfileOption:
-	; Edit user profile
-	call EditUserProfile
 	jmp UserPortalLoop
 
 BookingOption:
@@ -1154,7 +1258,28 @@ ViewUserProfile PROC
 	mov edx, edi
 	call WriteString
 	call CrLf
+
+	; Display reward points
+	mov edx, OFFSET profileRewards
+	call WriteString
+	mov eax, 4		; reward points field
+	call GetUserField	; EDI = pointer to reward points
+	movzx eax, WORD PTR [edi] ; Load reward points (WORD)
+	call WriteDec
+	call CrLf
 	
+	mov edx, OFFSET editProfilePrompt
+	call WriteString
+	call ReadChar
+	call WriteChar
+	cmp al, 'Y'
+	je CallEditProfile
+	cmp al, 'y'
+	je CallEditProfile
+	jmp ProfileDisplayComplete
+
+CallEditProfile:
+	call EditUserProfile
 	jmp ProfileDisplayComplete
 
 UserNotFound:
@@ -1514,14 +1639,46 @@ BookingPortal PROC
 	push esi
 	push edi
 
+BookingPortalLoop:
 	call Clrscr
+
 	mov edx, OFFSET bookingHeader
 	call WriteString
-	; Add booking implementation here
+	call ReadChar
+	call WriteChar
+	call CrLf
+
+	cmp al, '1'
+	je Select2D
+	cmp al, '2'
+	je SelectIMAX
+	cmp al, '3'
+	je BackToPortal
+	jmp BackToPortal
+
+	; Invalid choice
+	mov edx, OFFSET InvalidChoice
+	call WriteString
+	jmp BookingPortalLoop
+
+Select2D:
+	mov currentMovieType, 0	; 0 = 2D
+	call Show2DMovies
+	jmp BookingPortalLoop
+
+SelectIMAX:
+	mov currentMovieType, 1	; 1 = IMAX
+	call ShowIMAXMovies
+	jmp BookingPortalLoop
+
+BackToPortal:
+	call Clrscr
 	mov edx, OFFSET returnToPortal
 	call WriteString
-	call ReadChar
-	
+	call WaitMsg
+	jmp BookingPortalEnd
+
+BookingPortalEnd:
 	pop edi
 	pop esi
 	pop ecx
@@ -1530,6 +1687,573 @@ BookingPortal PROC
 	pop eax
 	ret
 BookingPortal ENDP
+
+;2D Movie Menu
+Show2DMovies PROC
+	push eax
+	push ebx
+	push edx
+	push ecx
+	push esi
+	push edi
+
+Movie2DLoop:
+	call Clrscr
+	mov edx, OFFSET movies2D
+	call WriteString
+	call ReadInt
+	call WriteChar
+	call CrLf
+	mov userChoice, eax
+
+	cmp eax, 1
+	je Valid2DChoice
+	cmp eax, 2
+	je Valid2DChoice
+	cmp eax, 3
+	je Valid2DChoice
+	cmp eax, 4
+	je BackToBooking
+
+	; Invalid choice
+	mov edx, OFFSET InvalidChoice
+	call WriteString
+	jmp Movie2DLoop
+
+Valid2DChoice:
+	mov currentMovie, eax
+	call ShowShowtimes
+	jmp Movie2DLoop
+
+BackToBooking:
+	call WaitMsg
+	jmp Show2DMovieEnd
+
+Show2DMovieEnd:
+	pop edi
+	pop esi
+	pop ecx
+	pop edx
+	pop ebx
+	pop eax
+	ret
+Show2DMovies ENDP
+
+; IMAX Movie Menu
+ShowIMAXMovies PROC
+	push eax
+	push ebx
+	push edx
+	push ecx
+	push esi
+	push edi
+
+MovieIMAXLoop:
+	call Clrscr
+	mov edx, OFFSET moviesIMAX
+	call WriteString
+	call ReadInt
+	call WriteChar
+	call CrLf
+	mov userChoice, eax
+	cmp eax, 1
+	je ValidIMAXChoice
+	cmp eax, 2
+	je ValidIMAXChoice
+	cmp eax, 3
+	je ValidIMAXChoice
+	cmp eax, 4
+	je BackToBookingIMAX
+	; Invalid choice
+	mov edx, OFFSET InvalidChoice
+	call WriteString
+	jmp MovieIMAXLoop
+
+ValidIMAXChoice:
+	mov currentMovie, eax
+	call ShowShowtimes
+	jmp MovieIMAXLoop
+
+
+BackToBookingIMAX:
+	call WaitMsg
+	jmp ShowIMAXMovieEnd
+
+ShowIMAXMovieEnd:
+	pop edi
+	pop esi
+	pop ecx
+	pop edx
+	pop ebx
+	pop eax
+	ret
+ShowIMAXMovies ENDP
+
+;Show showtimes for selected movie
+ShowShowtimes PROC
+	push eax
+	push ebx
+	push edx
+	push ecx
+	push esi
+	push edi
+
+ShowtimesLoop:
+	call Clrscr
+	mov edx, OFFSET showtimesMenu
+	call WriteString
+	call ReadInt
+	call WriteChar
+	call CrLf
+	mov userChoice, eax
+
+	cmp eax, 1
+	jge ValidShowtimeChoice
+	cmp eax, 4 
+	jle ValidShowtimeChoice
+	cmp eax, 5
+	je BackToMovies
+
+	;Invalid choice
+	mov edx, OFFSET InvalidChoice
+	call WriteString
+	jmp ShowtimesLoop
+
+ValidShowtimeChoice:
+	mov currentShowtime, eax
+	call ShowSeatSelection
+	jmp ShowtimesLoop
+
+BackToMovies:
+	call WaitMsg
+	jmp ShowShowtimesEnd
+
+ShowShowtimesEnd:
+	pop edi
+	pop esi
+	pop ecx
+	pop edx
+	pop ebx
+	pop eax
+	ret
+ShowShowtimes ENDP
+
+; Show seat selection with quantity input
+ShowSeatSelection PROC
+	push eax
+	push ebx
+	push edx
+	push ecx
+	push esi
+	push edi
+
+SeatLoop:
+	call Clrscr
+	
+	; Display the seat menu header and options first
+	cmp currentMovieType, 0
+	je Show2DSeats
+	; Display IMAX seat menu header and options only
+	mov edx, OFFSET seatMenuIMAXHeader
+	call WriteString
+	jmp ContinueSeatSelection
+
+Show2DSeats:
+	; Display 2D seat menu header and options only
+	mov edx, OFFSET seatMenu2DHeader
+	call WriteString
+
+ContinueSeatSelection:
+	; Show available seats for each type
+	call DisplayAvailableSeats
+	
+	; Now display the selection prompt at the bottom
+	mov edx, OFFSET seatSelectionPrompt
+	call WriteString
+
+	call ReadInt
+	mov userChoice, eax
+
+	cmp eax, 1
+	je ValidSeatChoice
+	cmp eax, 2
+	je ValidSeatChoice
+	cmp eax, 3
+	je ValidSeatChoice
+	cmp eax, 4
+	je BackToShowtimes
+	jmp BackToShowtimes
+
+ValidSeatChoice:
+	mov currentSeatType, eax
+	
+	; Get seat quantity from user
+	call GetSeatQuantity
+	cmp eax, 0
+	je SeatLoop  ; If quantity selection failed, go back to seat selection
+
+	;Check if enough seats are available
+	call CheckSeatAvailability
+	mov ebx, currentSeatQty
+	cmp eax, ebx  ; Compare available seats with requested quantity
+	jl NotEnoughSeats  ; Fixed: renamed label to avoid conflict
+	
+	call ShowBookingSummary
+	jmp SeatLoop
+
+BackToShowtimes:
+	call WaitMsg
+	jmp ShowSeatSelectionEnd
+
+NotEnoughSeats:  ; Fixed: renamed from InsufficientSeats
+	mov edx, OFFSET insufficientSeats
+	call WriteString
+	call WaitMsg
+	jmp SeatLoop
+
+ShowSeatSelectionEnd:
+	pop edi
+	pop esi
+	pop ecx
+	pop edx
+	pop ebx
+	pop eax
+	ret
+ShowSeatSelection ENDP
+
+; Get seat quantity from user
+; Output: EAX = 1 if successful, 0 if failed
+GetSeatQuantity PROC
+	push ebx
+	push ecx
+	push edx
+
+GetQuantityLoop:
+	call CrLf
+	mov edx, OFFSET seatQtyPrompt
+	call WriteString
+	call ReadInt
+	
+	; Validate quantity (1-10)
+	cmp eax, 1
+	jl InvalidQuantity
+	cmp eax, 10
+	jg InvalidQuantity
+	
+	; Store valid quantity
+	mov currentSeatQty, eax
+	mov eax, 1  ; Success
+	jmp GetQuantityEnd
+
+InvalidQuantity:
+	mov edx, OFFSET invalidQtyMsg
+	call WriteString
+	call WaitMsg
+	jmp GetQuantityLoop
+
+GetQuantityEnd:
+	pop edx
+	pop ecx
+	pop ebx
+	ret
+GetSeatQuantity ENDP
+
+; Display available seats for current showtime
+DisplayAvailableSeats PROC
+    pushad
+    
+    ; Calculate base index for current showtime
+    mov eax, currentShowtime
+    dec eax                     ; Convert to 0-based index
+    mov ebx, 3                  ; 3 seat types per showtime
+    mul ebx                     ; eax = showtime_index * 3
+    mov ebx, eax               ; Store base index
+    
+    mov edx, OFFSET newline
+    call WriteString
+    
+    ; Display Standard seats
+    mov edx, OFFSET seatsAvailable
+    call WriteString
+    mov eax, OFFSET availableSeats
+    mov ecx, ebx
+    mov eax, [eax + ecx*4]      ; Get standard seats count
+    call WriteDec
+    mov al, ' '                 ; Add space character
+    call WriteChar
+    mov edx, OFFSET standardText
+    call WriteString
+    mov edx, OFFSET newline
+    call WriteString
+    
+    ; Display Premium seats  
+    mov edx, OFFSET seatsAvailable
+    call WriteString
+    mov eax, OFFSET availableSeats
+    mov ecx, ebx
+    inc ecx                     ; Move to premium seats
+    mov eax, [eax + ecx*4]
+    call WriteDec
+    mov al, ' '                 ; Add space character
+    call WriteChar
+    mov edx, OFFSET premiumText
+    call WriteString
+    mov edx, OFFSET newline
+    call WriteString
+    
+    ; Display Couple seats
+    mov edx, OFFSET seatsAvailable
+    call WriteString
+    mov eax, OFFSET availableSeats
+    mov ecx, ebx
+    add ecx, 2                  ; Move to couple seats
+    mov eax, [eax + ecx*4]
+    call WriteDec
+    mov al, ' '                 ; Add space character
+    call WriteChar
+    mov edx, OFFSET coupleText
+    call WriteString
+    mov edx, OFFSET newline
+    call WriteString
+    mov edx, OFFSET newline
+    call WriteString
+    
+    popad
+    ret
+DisplayAvailableSeats ENDP
+
+; Check if selected seat type has availability
+CheckSeatAvailability PROC
+    pushad
+    
+    ; Calculate seat index
+    mov eax, currentShowtime
+    dec eax                     ; Convert to 0-based
+    mov ebx, 3
+    mul ebx                     ; eax = showtime_index * 3
+    add eax, currentSeatType
+    dec eax                     ; Add seat type offset (0-based)
+    
+    ; Check availability
+    mov ebx, OFFSET availableSeats
+    mov ecx, [ebx + eax*4]
+    
+    popad
+    mov eax, ecx                ; Return seat count in eax
+    ret
+CheckSeatAvailability ENDP
+
+ShowBookingSummary PROC
+	push eax
+	push ebx
+	push ecx
+	push edx
+	push esi
+	push edi
+	
+	call Clrscr
+	
+	; Display booking summary header
+	mov edx, OFFSET bookingSummary
+	call WriteString
+	call CrLf
+	
+	; Display movie type
+	mov edx, OFFSET movieSelected
+	call WriteString
+	cmp currentMovieType, 0
+	je Display2DType
+	mov edx, OFFSET moviesIMAX
+	jmp DisplayMovieType
+Display2DType:
+	mov edx, OFFSET movies2D
+DisplayMovieType:
+	; Extract just the movie name from the menu (simplified display)
+	call WriteString
+	call CrLf
+	
+	; Display showtime
+	mov edx, OFFSET showtimeSelected
+	call WriteString
+	mov eax, currentShowtime
+	call DisplayShowtimeName
+	call CrLf
+	
+	; Display seat type and quantity
+	mov edx, OFFSET seatTypeSelected
+	call WriteString
+	call DisplaySeatTypeName
+	call CrLf
+	
+	; Display quantity
+	mov edx, OFFSET seatsBooked
+	call WriteString
+	mov eax, currentSeatQty
+	call WriteDec
+	mov edx, OFFSET seatsText
+	call WriteString
+	call CrLf
+	
+	; Display total price
+	mov edx, OFFSET totalPriceText
+	call WriteString
+	call CalculateAndDisplayPrice
+	call CrLf
+	call CrLf
+	
+	; Confirm booking
+	mov edx, OFFSET confirmBookingPrompt
+	call WriteString
+	call ReadChar
+	call WriteChar
+	call CrLf
+	
+	cmp al, 'Y'
+	je ProcessBooking
+	cmp al, 'y'
+	je ProcessBooking
+	jmp BookingSummaryEnd
+
+ProcessBooking:
+	call ProcessSeatBooking
+	mov edx, OFFSET bookingConfirm
+	call WriteString
+
+BookingSummaryEnd:
+	call WaitMsg
+	
+	pop edi
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+ShowBookingSummary ENDP
+
+; Display showtime name based on currentShowtime
+DisplayShowtimeName PROC
+	push edx
+	
+	cmp eax, 1
+	je ShowTime1
+	cmp eax, 2
+	je ShowTime2
+	cmp eax, 3
+	je ShowTime3
+	cmp eax, 4
+	je ShowTime4
+	jmp ShowTimeEnd
+
+ShowTime1:
+	mov edx, OFFSET showtime1Text
+	jmp DisplayTime
+ShowTime2:
+	mov edx, OFFSET showtime2Text
+	jmp DisplayTime
+ShowTime3:
+	mov edx, OFFSET showtime3Text
+	jmp DisplayTime
+ShowTime4:
+	mov edx, OFFSET showtime4Text
+DisplayTime:
+	call WriteString
+
+ShowTimeEnd:
+	pop edx
+	ret
+DisplayShowtimeName ENDP
+
+; Display seat type name
+DisplaySeatTypeName PROC
+	push eax
+	push edx
+	
+	mov eax, currentSeatType
+	cmp eax, 1
+	je SeatStandard
+	cmp eax, 2
+	je SeatPremium
+	cmp eax, 3
+	je SeatCouple
+	jmp SeatTypeEnd
+
+SeatStandard:
+	mov edx, OFFSET standardText
+	jmp DisplaySeatType
+SeatPremium:
+	mov edx, OFFSET premiumText
+	jmp DisplaySeatType
+SeatCouple:
+	mov edx, OFFSET coupleText
+DisplaySeatType:
+	call WriteString
+
+SeatTypeEnd:
+	pop edx
+	pop eax
+	ret
+DisplaySeatTypeName ENDP
+
+; Calculate and display total price
+CalculateAndDisplayPrice PROC
+	push eax
+	push ebx
+	push ecx
+	
+	; Get price per seat
+	mov eax, currentSeatType
+	dec eax  ; Convert to 0-based index
+	
+	cmp currentMovieType, 0
+	je Use2DPrices
+	
+	; Use IMAX prices
+	mov ebx, OFFSET seatPricesIMAX
+	jmp GetPrice
+
+Use2DPrices:
+	mov ebx, OFFSET seatPrices2D
+
+GetPrice:
+	mov ecx, [ebx + eax*4]  ; Get price per seat
+	mov eax, currentSeatQty
+	mul ecx  ; Total price = quantity * price per seat
+	call WriteDec
+	
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+CalculateAndDisplayPrice ENDP
+
+; Process the actual seat booking (update available seats)
+ProcessSeatBooking PROC
+	push eax
+	push ebx
+	push ecx
+	push edx
+	
+	; Calculate seat index in availableSeats array
+	mov eax, currentShowtime
+	dec eax  ; Convert to 0-based
+	mov ebx, 3
+	mul ebx  ; eax = showtime_index * 3
+	add eax, currentSeatType
+	dec eax  ; Add seat type offset (0-based)
+	
+	; Update available seats
+	mov ebx, OFFSET availableSeats
+	mov ecx, [ebx + eax*4]  ; Get current available seats
+	sub ecx, currentSeatQty  ; Subtract booked seats
+	mov [ebx + eax*4], ecx  ; Store updated count
+	
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+ProcessSeatBooking ENDP
 
 GetCredentials PROC
 	;Clear input buffers
