@@ -214,6 +214,17 @@ Include Irvine32.inc
 			   BYTE "Evengers: End Game",0dh,0ah
 			   BYTE "Tatanic",0dh,0ah,0
 
+	movie1_2D    BYTE "Avatar: The Way of Fire", 0
+	movie2_2D    BYTE "Avengers: End Game", 0
+	movie3_2D    BYTE "Titanic", 0
+
+	movie1_IMAX  BYTE "Avatar: The Way of Water", 0
+	movie2_IMAX  BYTE "Avengers: End Game", 0
+	movie3_IMAX  BYTE "Titanic", 0
+
+	; Add these after your existing movie name definitions
+	movieType2D    BYTE "2D", 0
+	movieTypeIMAX  BYTE "IMAX", 0
 	;Seat type names
 	seatTypeNames BYTE "Standard",0dh,0ah
 				  BYTE "Premium",0dh,0ah
@@ -265,7 +276,40 @@ Include Irvine32.inc
 	premiumText      BYTE "Premium", 0
 	coupleText       BYTE "Couple", 0
 
+		;Combo options and messages
+	comboPrompt         BYTE 0dh, 0ah, "Do you want to purchase a combo? (Y/N): ", 0
+	comboMenuHeader     BYTE "============= COMBO MENU =============", 0dh, 0ah
+						BYTE "1. Combo A - Popcorn + Soft Drink (RM10.95)", 0dh, 0ah
+						BYTE "2. Combo B - Popcorn + Nachos + Soft Drink (RM13.70)", 0dh, 0ah
+						BYTE "3. Combo C - Large Popcorn + 2 Soft Drinks + Candy (RM18.88)", 0dh, 0ah
+						BYTE "4. No Combo", 0dh, 0ah
+						BYTE "======================================", 0dh, 0ah, 0
 	
+	comboSelectionPrompt BYTE "Select a combo (1-4): ", 0
+	comboQtyPrompt       BYTE "How many combos do you want to purchase? ", 0
+	comboSelectedText    BYTE "Combo: ", 0
+	comboPriceText       BYTE "Combo Price: RM", 0
+	comboQtyText         BYTE "Combo Quantity: ", 0
+	finalTotalText       BYTE "Final Total: RM", 0
+	paymentPrompt        BYTE "Proceed to payment? (Y/N): ", 0
+	
+	; Combo names for display
+	comboAText           BYTE "Combo A - Popcorn + Soft Drink", 0
+	comboBText           BYTE "Combo B - Popcorn + Nachos + Soft Drink", 0
+	comboCText           BYTE "Combo C - Large Popcorn + 2 Soft Drinks + Candy", 0
+	noComboText          BYTE "No Combo", 0
+	
+	; Updated combo prices in cents (10.95 = 1095 cents, 13.70 = 1370 cents, 18.88 = 1888 cents)
+	comboPrices          DWORD 1095, 1370, 1888, 0  ; Combo A, B, C, No combo
+	
+	; Current combo selection
+	currentCombo         DWORD 0  ; 0=no combo, 1=A, 2=B, 3=C
+	currentComboQty      DWORD 0  ; Quantity of combos selected
+	
+	; Decimal formatting strings
+	decimalPoint         BYTE ".", 0
+
+	invalidComboQtyMsg BYTE "Invalid combo quantity. Please enter a number greater than 0.",0dh,0ah,0
 
 .code
 main PROC
@@ -1170,8 +1214,9 @@ UserPortal PROC
 	push ecx
 	push esi
 
-UserPortalLoop:
 	call Clrscr
+
+UserPortalLoop:
 	mov edx, OFFSET userPortalHeader
 	call WriteString
 	mov edx, OFFSET menuChoice
@@ -1185,6 +1230,7 @@ UserPortalLoop:
 	je BookingOption
 	cmp al, '3'
 	je LogoutOption
+
 	; Invalid choice handling
 	mov edx, OFFSET InvalidChoice
 	call WriteString
@@ -1270,8 +1316,7 @@ ViewUserProfile PROC
 	
 	mov edx, OFFSET editProfilePrompt
 	call WriteString
-	call ReadChar
-	call WriteChar
+	call ValidateYNInput	; Use validation instead of ReadChar
 	cmp al, 'Y'
 	je CallEditProfile
 	cmp al, 'y'
@@ -1299,7 +1344,6 @@ ProfileDisplayComplete:
 	pop eax
 	ret
 ViewUserProfile ENDP
-
 ; Edit user profile - allows editing of email, phone, and password
 EditUserProfile PROC
 	push eax
@@ -1639,8 +1683,9 @@ BookingPortal PROC
 	push esi
 	push edi
 
-BookingPortalLoop:
 	call Clrscr
+
+BookingPortalLoop:
 
 	mov edx, OFFSET bookingHeader
 	call WriteString
@@ -1654,7 +1699,6 @@ BookingPortalLoop:
 	je SelectIMAX
 	cmp al, '3'
 	je BackToPortal
-	jmp BackToPortal
 
 	; Invalid choice
 	mov edx, OFFSET InvalidChoice
@@ -1672,7 +1716,6 @@ SelectIMAX:
 	jmp BookingPortalLoop
 
 BackToPortal:
-	call Clrscr
 	mov edx, OFFSET returnToPortal
 	call WriteString
 	call WaitMsg
@@ -1696,9 +1739,10 @@ Show2DMovies PROC
 	push ecx
 	push esi
 	push edi
+	
+	call Clrscr
 
 Movie2DLoop:
-	call Clrscr
 	mov edx, OFFSET movies2D
 	call WriteString
 	call ReadInt
@@ -1727,6 +1771,7 @@ Valid2DChoice:
 
 BackToBooking:
 	call WaitMsg
+	call Clrscr
 	jmp Show2DMovieEnd
 
 Show2DMovieEnd:
@@ -1747,9 +1792,10 @@ ShowIMAXMovies PROC
 	push ecx
 	push esi
 	push edi
+	
+	call Clrscr
 
 MovieIMAXLoop:
-	call Clrscr
 	mov edx, OFFSET moviesIMAX
 	call WriteString
 	call ReadInt
@@ -1777,6 +1823,7 @@ ValidIMAXChoice:
 
 BackToBookingIMAX:
 	call WaitMsg
+	call Clrscr
 	jmp ShowIMAXMovieEnd
 
 ShowIMAXMovieEnd:
@@ -1798,8 +1845,9 @@ ShowShowtimes PROC
 	push esi
 	push edi
 
-ShowtimesLoop:
 	call Clrscr
+
+ShowtimesLoop:
 	mov edx, OFFSET showtimesMenu
 	call WriteString
 	call ReadInt
@@ -1808,9 +1856,13 @@ ShowtimesLoop:
 	mov userChoice, eax
 
 	cmp eax, 1
-	jge ValidShowtimeChoice
+	je ValidShowtimeChoice
+	cmp eax, 2
+	je ValidShowtimeChoice
+	cmp eax, 3
+	je ValidShowtimeChoice
 	cmp eax, 4 
-	jle ValidShowtimeChoice
+	je ValidShowtimeChoice
 	cmp eax, 5
 	je BackToMovies
 
@@ -1826,6 +1878,7 @@ ValidShowtimeChoice:
 
 BackToMovies:
 	call WaitMsg
+	call Clrscr
 	jmp ShowShowtimesEnd
 
 ShowShowtimesEnd:
@@ -1846,9 +1899,10 @@ ShowSeatSelection PROC
 	push ecx
 	push esi
 	push edi
+	
+	call Clrscr
 
 SeatLoop:
-	call Clrscr
 	
 	; Display the seat menu header and options first
 	cmp currentMovieType, 0
@@ -1898,11 +1952,15 @@ ValidSeatChoice:
 	cmp eax, ebx  ; Compare available seats with requested quantity
 	jl NotEnoughSeats  ; Fixed: renamed label to avoid conflict
 	
+	; After quantity selection and availability check, ask for combo
+	call SelectCombo
+	
 	call ShowBookingSummary
 	jmp SeatLoop
 
 BackToShowtimes:
 	call WaitMsg
+	call Clrscr
 	jmp ShowSeatSelectionEnd
 
 NotEnoughSeats:  ; Fixed: renamed from InsufficientSeats
@@ -2058,18 +2116,10 @@ ShowBookingSummary PROC
 	call WriteString
 	call CrLf
 	
-	; Display movie type
+	; Display selected movie name only
 	mov edx, OFFSET movieSelected
 	call WriteString
-	cmp currentMovieType, 0
-	je Display2DType
-	mov edx, OFFSET moviesIMAX
-	jmp DisplayMovieType
-Display2DType:
-	mov edx, OFFSET movies2D
-DisplayMovieType:
-	; Extract just the movie name from the menu (simplified display)
-	call WriteString
+	call DisplayMovieName
 	call CrLf
 	
 	; Display showtime
@@ -2094,34 +2144,78 @@ DisplayMovieType:
 	call WriteString
 	call CrLf
 	
-	; Display total price
+	; Display ticket price
 	mov edx, OFFSET totalPriceText
 	call WriteString
 	call CalculateAndDisplayPrice
 	call CrLf
+	
+	; Display combo information if selected (combo was already selected earlier)
+	cmp currentCombo, 0
+	je NoComboSelected
+	
+	mov edx, OFFSET comboSelectedText
+	call WriteString
+	call DisplayComboName
 	call CrLf
 	
+	; Display combo quantity
+	mov edx, OFFSET comboQtyText
+	call WriteString
+	mov eax, currentComboQty
+	call WriteDec
+	call CrLf
+	
+	mov edx, OFFSET comboPriceText
+	call WriteString
+	call DisplayComboPrice
+	call CrLf
+
+NoComboSelected:
+	; Display final total
+	mov edx, OFFSET finalTotalText
+	call WriteString
+	call CalculateAndDisplayFinalTotal
+	call CrLf
+	call CrLf
+	
+	; Payment confirmation prompt
+	mov edx, OFFSET paymentPrompt
+	call WriteString
+	call ValidateYNInput	; Use validation instead of ReadChar
+	
+	cmp al, 'Y'
+	je ProcessPayment
+	cmp al, 'y'
+	je ProcessPayment
+	; User declined payment - exit to User Portal
+	mov eax, 999  ; Special return code to exit booking
+	jmp BookingSummaryExit
+
+ProcessPayment:
 	; Confirm booking
 	mov edx, OFFSET confirmBookingPrompt
 	call WriteString
-	call ReadChar
-	call WriteChar
-	call CrLf
+	call ValidateYNInput	; Use validation instead of ReadChar
 	
 	cmp al, 'Y'
 	je ProcessBooking
 	cmp al, 'y'
 	je ProcessBooking
-	jmp BookingSummaryEnd
+	; User cancelled booking - exit to User Portal
+	mov eax, 999  ; Special return code to exit booking
+	jmp BookingSummaryExit
 
 ProcessBooking:
 	call ProcessSeatBooking
 	mov edx, OFFSET bookingConfirm
 	call WriteString
-
-BookingSummaryEnd:
 	call WaitMsg
-	
+	; After successful booking - exit to User Portal
+	mov eax, 999  ; Special return code to exit booking
+	jmp BookingSummaryExit
+
+BookingSummaryExit:
 	pop edi
 	pop esi
 	pop edx
@@ -2130,6 +2224,68 @@ BookingSummaryEnd:
 	pop eax
 	ret
 ShowBookingSummary ENDP
+
+DisplayMovieName PROC
+	push eax
+	push edx
+	
+	; Display movie type first
+	cmp currentMovieType, 0
+	je Display2DMovie
+	
+	; IMAX movie
+	mov edx, OFFSET movie1_IMAX
+	mov eax, currentMovie
+	cmp eax, 1
+	je DisplaySelectedMovie
+	
+	mov edx, OFFSET movie2_IMAX
+	cmp eax, 2
+	je DisplaySelectedMovie
+	
+	mov edx, OFFSET movie3_IMAX
+	cmp eax, 3
+	je DisplaySelectedMovie
+	jmp DisplayMovieEnd
+
+Display2DMovie:
+	; 2D movie
+	mov edx, OFFSET movie1_2D
+	mov eax, currentMovie
+	cmp eax, 1
+	je DisplaySelectedMovie
+	
+	mov edx, OFFSET movie2_2D
+	cmp eax, 2
+	je DisplaySelectedMovie
+	
+	mov edx, OFFSET movie3_2D
+	cmp eax, 3
+	je DisplaySelectedMovie
+	jmp DisplayMovieEnd
+
+DisplaySelectedMovie:
+	call WriteString
+	mov al, ' '
+	call WriteChar
+	mov al, '('
+	call WriteChar
+	cmp currentMovieType, 0
+	je Display2DLabel
+	mov edx, OFFSET movieTypeIMAX
+	jmp DisplayLabel
+Display2DLabel:
+	mov edx, OFFSET movieType2D
+DisplayLabel:
+	call WriteString
+	mov al, ')'
+	call WriteChar
+
+DisplayMovieEnd:
+	pop edx
+	pop eax
+	ret
+DisplayMovieName ENDP
 
 ; Display showtime name based on currentShowtime
 DisplayShowtimeName PROC
@@ -2499,5 +2655,285 @@ ClearBuffer PROC
 	pop eax
 	ret
 ClearBuffer ENDP
+
+; Select combo procedure
+SelectCombo PROC
+	push eax
+	push edx
+	
+	; Ask if user wants combo
+	mov edx, OFFSET comboPrompt
+	call WriteString
+	call ValidateYNInput	; Use validation instead of ReadChar
+	
+	cmp al, 'Y'
+	je ShowComboMenu
+	cmp al, 'y'
+	je ShowComboMenu
+	
+	; User doesn't want combo
+	mov currentCombo, 0
+	mov currentComboQty, 0
+	jmp SelectComboEnd
+
+ShowComboMenu:
+	call CrLf
+	mov edx, OFFSET comboMenuHeader
+	call WriteString
+	mov edx, OFFSET comboSelectionPrompt
+	call WriteString
+	
+	call ReadInt
+	
+	; Validate combo choice
+	cmp eax, 1
+	jl InvalidComboChoice
+	cmp eax, 4
+	jg InvalidComboChoice
+	
+	; Valid choice
+	cmp eax, 4
+	je NoComboChoice
+	mov currentCombo, eax
+	
+	; Ask for combo quantity
+	call GetComboQuantity
+	jmp SelectComboEnd
+
+NoComboChoice:
+	mov currentCombo, 0
+	mov currentComboQty, 0
+	jmp SelectComboEnd
+
+InvalidComboChoice:
+	mov edx, OFFSET InvalidChoice
+	call WriteString
+	jmp ShowComboMenu
+
+SelectComboEnd:
+	pop edx
+	pop eax
+	ret
+SelectCombo ENDP
+
+; Get combo quantity from user
+; Output: Sets currentComboQty
+GetComboQuantity PROC
+	push eax
+	push edx
+
+GetComboQtyLoop:
+	call CrLf
+	mov edx, OFFSET comboQtyPrompt
+	call WriteString
+	call ReadInt
+	
+	; Validate quantity (minimum 1, no maximum limit)
+	cmp eax, 1
+	jl InvalidComboQty
+	
+	; Store valid quantity (no upper limit check)
+	mov currentComboQty, eax
+	jmp GetComboQtyEnd
+
+InvalidComboQty:
+	mov edx, OFFSET invalidQtyMsg
+	call WriteString
+	call WaitMsg
+	jmp GetComboQtyLoop
+
+GetComboQtyEnd:
+	pop edx
+	pop eax
+	ret
+GetComboQuantity ENDP
+
+; Display combo name based on currentCombo
+DisplayComboName PROC
+	push eax
+	push edx
+	
+	mov eax, currentCombo
+	cmp eax, 1
+	je DisplayComboA
+	cmp eax, 2
+	je DisplayComboB
+	cmp eax, 3
+	je DisplayComboC
+	jmp DisplayComboEnd
+
+DisplayComboA:
+	mov edx, OFFSET comboAText
+	jmp DisplayCombo
+DisplayComboB:
+	mov edx, OFFSET comboBText
+	jmp DisplayCombo
+DisplayComboC:
+	mov edx, OFFSET comboCText
+DisplayCombo:
+	call WriteString
+
+DisplayComboEnd:
+	pop edx
+	pop eax
+	ret
+DisplayComboName ENDP
+
+; Remove these duplicate procedures (lines near the end of the file):
+
+; Display combo price with decimal places
+DisplayComboPrice PROC
+	push eax
+	push ebx
+	push edx
+	
+	mov eax, currentCombo
+	cmp eax, 0
+	je DisplayComboPriceEnd
+	
+	dec eax  ; Convert to 0-based index
+	mov ebx, OFFSET comboPrices
+	mov eax, [ebx + eax*4]  ; Get price in cents
+	
+	; Display whole part (divide by 100)
+	mov ebx, 100
+	mov edx, 0
+	div ebx  ; EAX = whole part, EDX = remainder (cents)
+	
+	push edx  ; Save remainder
+	call WriteDec  ; Display whole part
+	
+	; Display decimal point
+	mov edx, OFFSET decimalPoint
+	call WriteString
+	
+	; Display decimal part
+	pop eax  ; Restore remainder
+	cmp eax, 10
+	jae DisplayTwoDigits
+	
+	; Single digit, add leading zero
+	push eax
+	mov al, '0'
+	call WriteChar
+	pop eax
+
+DisplayTwoDigits:
+	call WriteDec
+
+DisplayComboPriceEnd:
+	pop edx
+	pop ebx
+	pop eax
+	ret
+DisplayComboPrice ENDP
+
+; Calculate and display final total (tickets + combo)
+CalculateAndDisplayFinalTotal PROC
+	push eax
+	push ebx
+	push ecx
+	push edx
+	
+	; Calculate ticket price in cents
+	mov eax, currentSeatType
+	dec eax  ; Convert to 0-based index
+	
+	cmp currentMovieType, 0
+	je UseFinal2DPrices
+	
+	; Use IMAX prices
+	mov ebx, OFFSET seatPricesIMAX
+	jmp GetFinalPrice
+
+UseFinal2DPrices:
+	mov ebx, OFFSET seatPrices2D
+
+GetFinalPrice:
+	mov ecx, [ebx + eax*4]  ; Get price per seat
+	mov eax, currentSeatQty
+	mul ecx  ; Total ticket price
+	
+	; Convert to cents
+	mov ebx, 100
+	mul ebx  ; EAX = ticket price in cents
+	
+	; Add combo price if selected
+	cmp currentCombo, 0
+	je NoComboPrice
+	
+	mov ebx, currentCombo
+	dec ebx  ; Convert to 0-based index
+	mov ecx, OFFSET comboPrices
+	add eax, [ecx + ebx*4]  ; Add combo price
+
+NoComboPrice:
+	; Display final total with decimal
+	mov ebx, 100
+	mov edx, 0
+	div ebx  ; EAX = whole part, EDX = remainder
+	
+	push edx  ; Save remainder
+	call WriteDec  ; Display whole part
+	
+	; Display decimal point
+	mov edx, OFFSET decimalPoint
+	call WriteString
+	
+	; Display decimal part
+	pop eax  ; Restore remainder
+	cmp eax, 10
+	jae DisplayFinalTwoDigits
+	
+	; Single digit, add leading zero
+	push eax
+	mov al, '0'
+	call WriteChar
+	pop eax
+
+DisplayFinalTwoDigits:
+	call WriteDec
+	
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+CalculateAndDisplayFinalTotal ENDP
+
+; Add this error message to your .data section
+invalidYNMsg BYTE 0dh, 0ah, "Invalid input! Please enter Y for Yes or N for No.", 0dh, 0ah, 0
+
+; Add this validation procedure to your .code section
+; Validates Y/N input with error handling
+; Input: None (reads user input)
+; Output: AL = 'Y', 'y', 'N', or 'n' (guaranteed valid)
+ValidateYNInput PROC
+    push edx
+
+ValidateYNLoop:
+    call ReadChar
+    call WriteChar
+    call CrLf
+    
+    ; Check for valid Y/N responses
+    cmp al, 'Y'
+    je ValidYNInput
+    cmp al, 'y'
+    je ValidYNInput
+    cmp al, 'N'
+    je ValidYNInput
+    cmp al, 'n'
+    je ValidYNInput
+    
+    ; Invalid input - show error and retry
+    mov edx, OFFSET invalidYNMsg
+    call WriteString
+    jmp ValidateYNLoop
+
+ValidYNInput:
+    pop edx
+    ret
+ValidateYNInput ENDP
 
 End main
