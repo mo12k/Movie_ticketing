@@ -2,314 +2,288 @@ Include Irvine32.inc
 
 .data
 
-	;Home page part
-	banner BYTE "=================================================================================",0Dh,0Ah
-		   BYTE "__        __   _                            _             _    _____ ____ ",0Dh,0Ah
-		   BYTE "\ \      / /__| | ___ ___  _ __ ___   ___  | |_ ___      / \  |  ___/ ___|",0Dh,0Ah
-		   BYTE " \ \ /\ / / _ \ |/ __/ _ \| '_ ` _ \ / _ \ | __/ _ \    / _ \ | |_ | |    ",0Dh,0Ah
-		   BYTE "  \ V  V /  __/ | (_| (_) | | | | | |  __/ | || (_) |  / ___ \|  _|| |___ ",0Dh,0Ah
-		   BYTE "  _\_/\_/ \___|_|\___\___/|_| |_| |_|\___|  \__\___/  /_/   \_\_|   \____|",0Dh,0Ah
-		   BYTE " / ___(_)_ __   ___ _ __ ___   __ _                                       ",0Dh,0Ah
-		   BYTE "| |   | | '_ \ / _ \ '_ ` _ \ / _` |                                      ",0Dh,0Ah
-		   BYTE "| |___| | | | |  __/ | | | | | (_| |                                      ",0Dh,0Ah
-		   BYTE " \____|_|_| |_|\___|_| |_| |_|\__,_|                                      ",0Dh,0Ah
-		   BYTE "=================================================================================",0Dh,0Ah,0
+; ========== APPLICATION BANNER AND MAIN MENU ==========
+banner BYTE "=================================================================================",0Dh,0Ah
+       BYTE "__        __   _                            _             _    _____ ____ ",0Dh,0Ah
+       BYTE "\ \      / /__| | ___ ___  _ __ ___   ___  | |_ ___      / \  |  ___/ ___|",0Dh,0Ah
+       BYTE " \ \ /\ / / _ \ |/ __/ _ \| '_ ` _ \ / _ \ | __/ _ \    / _ \ | |_ | |    ",0Dh,0Ah
+       BYTE "  \ V  V /  __/ | (_| (_) | | | | | |  __/ | || (_) |  / ___ \|  _|| |___ ",0Dh,0Ah
+       BYTE "  _\_/\_/ \___|_|\___\___/|_| |_| |_|\___|  \__\___/  /_/   \_\_|   \____|",0Dh,0Ah
+       BYTE " / ___(_)_ __   ___ _ __ ___   __ _                                       ",0Dh,0Ah
+       BYTE "| |   | | '_ \ / _ \ '_ ` _ \ / _` |                                      ",0Dh,0Ah
+       BYTE "| |___| | | | |  __/ | | | | | (_| |                                      ",0Dh,0Ah
+       BYTE " \____|_|_| |_|\___|_| |_| |_|\__,_|                                      ",0Dh,0Ah
+       BYTE "=================================================================================",0Dh,0Ah,0
 
-    mainMenuMsg     BYTE 0dh, 0ah, "MAIN MENU:", 0dh, 0ah
-                    BYTE "1. Admin Login", 0dh, 0ah
-                    BYTE "2. User Login", 0dh, 0ah
-                    BYTE "3. User Registration", 0dh, 0ah
-                    BYTE "4. Exit", 0dh, 0ah
-                    BYTE "Please select an option (1-4): ", 0
+mainMenuMsg BYTE 0dh, 0ah, "MAIN MENU:", 0dh, 0ah
+            BYTE "1. Admin Login", 0dh, 0ah
+            BYTE "2. User Login", 0dh, 0ah
+            BYTE "3. User Registration", 0dh, 0ah
+            BYTE "4. Exit", 0dh, 0ah
+            BYTE "Please select an option (1-4): ", 0
 
-	menuChoice BYTE ?       ; Variable to store user input
+; ========== AUTHENTICATION SYSTEM ==========
+; Admin default credentials
+adminUsername BYTE "admin", 0
+adminPassword BYTE "@96iT2", 0
 
-	;Login messages
-	adminLoginHeader BYTE 0dh, 0ah, "=== ADMIN LOGIN ===", 0dh, 0ah, 0
-	userLoginHeader  BYTE 0dh, 0ah, "=== USER LOGIN ===", 0dh, 0ah, 0
-	usernamePrompt   BYTE "Username: ", 0
-	passwordPrompt   BYTE "Password (min 8 chars, uppercase, lowercase, number, special): ", 0
+; Login interface messages
+adminLoginHeader BYTE 0dh, 0ah, "=== ADMIN LOGIN ===", 0dh, 0ah, 0
+userLoginHeader  BYTE 0dh, 0ah, "=== USER LOGIN ===", 0dh, 0ah, 0
+usernamePrompt   BYTE "Username: ", 0
+passwordPrompt   BYTE "Password (min 8 chars, uppercase, lowercase, number, special): ", 0
 
-	;Registration messages
-	registrationHeader BYTE 0dh, 0ah, "=== USER REGISTRATION ===", 0dh, 0ah, 0
-	emailPrompt        BYTE "Email (must contain @): ", 0
-	phonePrompt        BYTE "Phone (Malaysian format 01X-XXXXXXX): ", 0
-	registrationSuccess BYTE 0dh, 0ah, "Registration successful! You can now login with your credentials.", 0dh, 0ah, 0
-	registrationFailed  BYTE 0dh, 0ah, "Registration failed! Username already exists.", 0dh, 0ah, 0
-	phoneExistsMsg      BYTE 0dh, 0ah, "Registration failed! Phone number already registered.", 0dh, 0ah, 0
-	maxUsersReached     BYTE 0dh, 0ah, "Registration failed! Maximum number of users reached.", 0dh, 0ah, 0
+; Login attempt tracking
+attempts DWORD 0
+maxAttempts DWORD 3
+maxAttemptsMsg BYTE "Maximum login attempts exceeded. Access denied.", 0dh, 0ah, 0
 
-	;Validation error messages
-	passwordError BYTE 0dh, 0ah, "Password must be at least 8 characters with uppercase, lowercase, number, and special character.", 0dh, 0ah, 0
-	emailError    BYTE 0dh, 0ah, "Email must contain @ symbol.", 0dh, 0ah, 0
-	phoneError    BYTE 0dh, 0ah, "Phone must be Malaysian format (01X-XXXXXXX or 01XXXXXXXXX, 10-11 digits starting with 01).", 0dh, 0ah, 0
+; Authentication result messages
+adminLoginSuccess BYTE 0dh, 0ah, "Admin login successful! Welcome, Administrator.", 0dh, 0ah, 0
+userLoginSuccess  BYTE 0dh, 0ah, "User login successful! Welcome, User.", 0dh, 0ah, 0
+loginFailed       BYTE 0dh, 0ah, "Login failed! Invalid username or password.", 0dh, 0ah, 0
 
-	;Success messages
-	adminLoginSuccess BYTE 0dh, 0ah, "Admin login successful! Welcome, Administrator.", 0dh, 0ah, 0
-	userLoginSuccess  BYTE 0dh, 0ah, "User login successful! Welcome, User.", 0dh, 0ah, 0
+; Password masking constants
+BACKSPACE_KEY EQU 8
+ENTER_KEY EQU 13
 
-	;Failure messages
-	loginFailed     BYTE 0dh, 0ah, "Login failed! Invalid username or password.", 0dh, 0ah, 0
-	maxAttemptsMsg  BYTE "Maximum login attempts exceeded. Access denied.", 0dh, 0ah, 0
+; ========== USER REGISTRATION SYSTEM ==========
+registrationHeader BYTE 0dh, 0ah, "=== USER REGISTRATION ===", 0dh, 0ah, 0
+emailPrompt        BYTE "Email (must contain @): ", 0
+phonePrompt        BYTE "Phone (Malaysian format 01X-XXXXXXX): ", 0
 
-	;User portal messages
-	userPortalHeader BYTE 0dh, 0ah, "=== USER PORTAL ===",0dh, 0ah
-					 BYTE "1. View Profile", 0dh, 0ah
-					 BYTE "2. Booking Movie Tickets", 0dh, 0ah
-					 BYTE "3. Logout", 0dh, 0ah
-					 BYTE "Please select an option (1-3): ", 0
+; Registration validation error messages
+passwordError BYTE 0dh, 0ah, "Password must be at least 8 characters with uppercase, lowercase, number, and special character.", 0dh, 0ah, 0
+emailError    BYTE 0dh, 0ah, "Email must contain @ symbol.", 0dh, 0ah, 0
+phoneError    BYTE 0dh, 0ah, "Phone must be Malaysian format (01X-XXXXXXX or 01XXXXXXXXX, 10-11 digits starting with 01).", 0dh, 0ah, 0
 
-	;Profile display messages
-	profileHeader    BYTE 0dh, 0ah, "=== USER PROFILE ===", 0dh, 0ah, 0
-	profileUsername  BYTE "Username: ", 0
-	profileEmail     BYTE "Email: ", 0
-	profilePhone     BYTE "Phone: ", 0
-	profileRewards   BYTE "Reward Points: ", 0
-	profileNotFound  BYTE "Error: User profile not found!", 0dh, 0ah, 0
-	returnToPortal   BYTE 0dh, 0ah, "Press any key to return to User Portal...", 0dh, 0ah, 0
-	editProfilePrompt BYTE "Do you want to edit your profile? (Y/N): ", 0
+; Registration result messages
+registrationSuccess BYTE 0dh, 0ah, "Registration successful! You can now login with your credentials.", 0dh, 0ah, 0
+registrationFailed  BYTE 0dh, 0ah, "Registration failed! Username already exists.", 0dh, 0ah, 0
+phoneExistsMsg      BYTE 0dh, 0ah, "Registration failed! Phone number already registered.", 0dh, 0ah, 0
+maxUsersReached     BYTE 0dh, 0ah, "Registration failed! Maximum number of users reached.", 0dh, 0ah, 0
 
-	;Profile editing messages
-	editProfileHeader BYTE 0dh, 0ah, "=== EDIT PROFILE ===", 0dh, 0ah, 0
-	editOption1       BYTE "1. Edit Email", 0dh, 0ah, 0
-	editOption2       BYTE "2. Edit Phone", 0dh, 0ah, 0
-	editOption3       BYTE "3. Change Password", 0dh, 0ah, 0
-	editOption4       BYTE "4. Back to User Portal", 0dh, 0ah, 0
-	editPrompt        BYTE "Select what to edit (1-4): ", 0
-	
-	newEmailPrompt    BYTE "Enter new email: ", 0
-	newPhonePrompt    BYTE "Enter new phone: ", 0
-	currentPasswordPrompt BYTE "Enter current password: ", 0
-	newPasswordPrompt BYTE "Enter new password: ", 0
-	confirmPasswordPrompt BYTE "Confirm new password: ", 0
-	
-	updateSuccess     BYTE "Profile updated successfully!", 0dh, 0ah, 0
-	updateFailed      BYTE "Profile update failed!", 0dh, 0ah, 0
-	passwordMismatch  BYTE "Passwords do not match!", 0dh, 0ah, 0
-	wrongPassword     BYTE "Current password is incorrect!", 0dh, 0ah, 0
-	sameAsCurrentMsg  BYTE "New value is same as current value!", 0dh, 0ah, 0
+; ========== USER DATABASE STRUCTURE ==========
+; User record constants
+MAX_USERS EQU 100
+USERNAME_SIZE EQU 20
+PASSWORD_SIZE EQU 20
+EMAIL_SIZE EQU 30
+PHONE_SIZE EQU 15
+REWARD_POINTS_SIZE EQU 4
+USER_RECORD_SIZE EQU USERNAME_SIZE + PASSWORD_SIZE + EMAIL_SIZE + PHONE_SIZE + REWARD_POINTS_SIZE
 
-	;Other messages
-	exitMsg         BYTE 0dh, 0ah, "Exiting the program. Goodbye!", 0dh, 0ah, 0
-	InvalidChoice   BYTE 0dh, 0ah, "Invalid choice. Please select a valid option.", 0dh, 0ah, 0
-	continueMsg     BYTE 0dh, 0ah, "Press any key to return to main menu...", 0dh, 0ah, 0
-	emptyInputMsg   BYTE 0dh, 0ah, "Input cannot be empty. Please try again.", 0dh, 0ah, 0
+; User database storage
+userData BYTE MAX_USERS * USER_RECORD_SIZE DUP(0)
+userCount DWORD 2
 
-	;admin credentials
-	adminUsername BYTE "admin", 0
-	adminPassword BYTE "@96iT2", 0
+; Current session tracking
+currentUser BYTE USERNAME_SIZE DUP(0)
+currentUserIndex DWORD -1
 
-	;User structure constants
-	MAX_USERS EQU 100
-	USERNAME_SIZE EQU 20
-	PASSWORD_SIZE EQU 20
-	EMAIL_SIZE EQU 30
-	PHONE_SIZE EQU 15
-	REWARD_POINTS_SIZE EQU 4
+; Predefined users for testing
+predefUser1 BYTE "user1", 0
+predefPass1 BYTE "pass1", 0
+predefEmail1 BYTE "user1@gmail.com",0
+predefPhone1 BYTE "0123456789",0
+predefReward1 WORD 100
 
-	; Size of a single user record
-	USER_RECORD_SIZE EQU USERNAME_SIZE + PASSWORD_SIZE + EMAIL_SIZE + PHONE_SIZE + REWARD_POINTS_SIZE
+predefUser2 BYTE "user2", 0
+predefPass2 BYTE "pass2", 0
+predefEmail2 BYTE "user2@gmail.com",0
+predefPhone2 BYTE "0123456987",0
+predefReward2 WORD 150
 
-	;user data storage - structured array
-	userData BYTE MAX_USERS * USER_RECORD_SIZE DUP(0)
+; ========== USER PROFILE MANAGEMENT ==========
+userPortalHeader BYTE 0dh, 0ah, "=== USER PORTAL ===",0dh, 0ah
+                 BYTE "1. View Profile", 0dh, 0ah
+                 BYTE "2. Booking Movie Tickets", 0dh, 0ah
+                 BYTE "3. Logout", 0dh, 0ah
+                 BYTE "Please select an option (1-3): ", 0
 
-	;Predefined user data for initialization
-	predefUser1 BYTE "user1", 0
-	predefPass1 BYTE "pass1", 0
-	predefEmail1 BYTE "user1@gmail.com",0
-	predefPhone1 BYTE "0123456789",0
-	predefReward1 WORD 100 ; Initial reward points for user1
+; Profile display messages
+profileHeader    BYTE 0dh, 0ah, "=== USER PROFILE ===", 0dh, 0ah, 0
+profileUsername  BYTE "Username: ", 0
+profileEmail     BYTE "Email: ", 0
+profilePhone     BYTE "Phone: ", 0
+profileRewards   BYTE "Reward Points: ", 0
+profileNotFound  BYTE "Error: User profile not found!", 0dh, 0ah, 0
+editProfilePrompt BYTE "Do you want to edit your profile? (Y/N): ", 0
 
-	predefUser2 BYTE "user2", 0
-	predefPass2 BYTE "pass2", 0
-	predefEmail2 BYTE "user2@gmail.com",0
-	predefPhone2 BYTE "0123456987",0
-	predefReward2 WORD 150 ; Initial reward points for user2
+; Profile editing interface
+editProfileHeader BYTE 0dh, 0ah, "=== EDIT PROFILE ===", 0dh, 0ah, 0
+editOption1       BYTE "1. Edit Email", 0dh, 0ah, 0
+editOption2       BYTE "2. Edit Phone", 0dh, 0ah, 0
+editOption3       BYTE "3. Change Password", 0dh, 0ah, 0
+editOption4       BYTE "4. Back to User Portal", 0dh, 0ah, 0
+editPrompt        BYTE "Select what to edit (1-4): ", 0
 
-	userCount DWORD 2 ; Number of predefined users
-	currentUser BYTE USERNAME_SIZE DUP(0) ; Buffer for current logged-in user
-	currentUserIndex DWORD -1 ; Index of current user in userData array
+; Profile editing prompts
+newEmailPrompt    BYTE "Enter new email: ", 0
+newPhonePrompt    BYTE "Enter new phone: ", 0
+currentPasswordPrompt BYTE "Enter current password: ", 0
+newPasswordPrompt BYTE "Enter new password: ", 0
+confirmPasswordPrompt BYTE "Confirm new password: ", 0
 
-	;Input for registration and editing
-	inputEmail BYTE EMAIL_SIZE DUP(0) 
-	inputPhone BYTE PHONE_SIZE DUP(0)
-	confirmPassword BYTE PASSWORD_SIZE DUP(0)
+; Profile update result messages
+updateSuccess     BYTE "Profile updated successfully!", 0dh, 0ah, 0
+updateFailed      BYTE "Profile update failed!", 0dh, 0ah, 0
+passwordMismatch  BYTE "Passwords do not match!", 0dh, 0ah, 0
+wrongPassword     BYTE "Current password is incorrect!", 0dh, 0ah, 0
+sameAsCurrentMsg  BYTE "New value is same as current value!", 0dh, 0ah, 0
 
-	;Input buffers for credentials
-	inputUsername BYTE 20 DUP(0) ; Buffer for username input
-	inputPassword BYTE 20 DUP(0) ; Buffer for password input
+; ========== MOVIE BOOKING SYSTEM ==========
+; Main booking portal
+bookingHeader BYTE 0dh, 0ah, "======= BOOKING MOVIE =======", 0dh, 0ah
+              BYTE "1. 2D", 0dh, 0ah
+              BYTE "2. IMAX", 0dh, 0ah
+              BYTE "3. Back to User Portal", 0dh, 0ah
+              BYTE "Select an option (1-3): ",0
 
-	;Attempt counter
-	attempts DWORD 0
-	maxAttempts DWORD 3
+; Movie selection menus
+movies2D BYTE "============ 2D MOVIES ============", 0dh, 0ah
+         BYTE "1. Avatar: The Way of Fire", 0dh, 0ah
+         BYTE "2. Evengers: End Game ", 0dh, 0ah
+         BYTE "3. Tatanic", 0dh, 0ah
+         BYTE "4. Back to User Portal", 0dh, 0ah
+         BYTE "===================================",0dh,0ah
+         BYTE "Select a movie (1-4): ",0
 
-	; Password masking constants
-	BACKSPACE_KEY EQU 8
-	ENTER_KEY EQU 13
+moviesIMAX BYTE "=========== IMAX MOVIES ===========", 0dh, 0ah
+           BYTE "1. Avatar: The Way of Water", 0dh, 0ah
+           BYTE "2. Evengers: End Game", 0dh, 0ah
+           BYTE "3. Tatanic", 0dh, 0ah
+           BYTE "4. Back to User Portal", 0dh, 0ah
+           BYTE "===================================",0dh,0ah
+           BYTE "Select a movie (1-4): ",0
 
-	;Booking portal messages
-	bookingHeader		BYTE 0dh, 0ah, "======= BOOKING MOVIE =======", 0dh, 0ah
-						BYTE "1. 2D", 0dh, 0ah
-						BYTE "2. IMAX", 0dh, 0ah
-						BYTE "3. Back to User Portal", 0dh, 0ah
-						BYTE "Select an option (1-3): ",0
-	;2D Movie Menu
-	movies2D			BYTE "============ 2D MOVIES ============", 0dh, 0ah
-						BYTE "1. Avatai: The Way of Fire", 0dh, 0ah
-						BYTE "2. Evengers: End Game ", 0dh, 0ah
-						BYTE "3. Tatanic", 0dh, 0ah
-						BYTE "4. Back to User Portal", 0dh, 0ah
-						BYTE "===================================",0dh,0ah
-						BYTE "Select a movie (1-4): ",0
+; Movie names for display
+movie1_2D    BYTE "Avatar: The Way of Fire", 0
+movie2_2D    BYTE "Avengers: End Game", 0
+movie3_2D    BYTE "Titanic", 0
+movie1_IMAX  BYTE "Avatar: The Way of Water", 0
+movie2_IMAX  BYTE "Avengers: End Game", 0
+movie3_IMAX  BYTE "Titanic", 0
+movieType2D  BYTE "2D", 0
+movieTypeIMAX BYTE "IMAX", 0
 
-	;IMAX Movie Menu
-	moviesIMAX			BYTE "=========== IMAX MOVIES ===========", 0dh, 0ah
-						BYTE "1. Avatar: The Way of Water", 0dh, 0ah
-						BYTE "2. Evengers: End Game", 0dh, 0ah
-						BYTE "3. Tatanic", 0dh, 0ah
-						BYTE "4. Back to User Portal", 0dh, 0ah
-						BYTE "===================================",0dh,0ah
-						BYTE "Select a movie (1-4): ",0
+; Showtime selection
+showtimesMenu BYTE "=========== SHOWTIMES ===========",0dh,0ah
+              BYTE "1. 10:00 AM", 0dh, 0ah
+              BYTE "2. 1:00 PM", 0dh, 0ah
+              BYTE "3. 4:00 PM", 0dh, 0ah
+              BYTE "4. 7:00 PM", 0dh, 0ah
+              BYTE "5. Back to Movie Selection", 0dh, 0ah
+              BYTE "===================================",0dh,0ah
+              BYTE "Select a showtime (1-5): ",0
 
-	;showtimes menu
-	showtimesMenu		BYTE "=========== SHOWTIMES ===========",0dh,0ah
-						BYTE "1. 10:00 AM", 0dh, 0ah
-						BYTE "2. 1:00 PM", 0dh, 0ah
-						BYTE "3. 4:00 PM", 0dh, 0ah
-						BYTE "4. 7:00 PM", 0dh, 0ah
-						BYTE "5. Back to Movie Selection", 0dh, 0ah
-						BYTE "===================================",0dh,0ah
-						BYTE "Select a showtime (1-5): ",0
+showtime1Text BYTE "10:00 AM", 0
+showtime2Text BYTE "1:00 PM", 0
+showtime3Text BYTE "4:00 PM", 0
+showtime4Text BYTE "7:00 PM", 0
 
-	;Seat Type Menu Headers 
-	seatMenu2DHeader    BYTE "=========== SEAT Selection(2D) ===========",0dh,0ah
-						BYTE "1. Standard (RM12)", 0dh, 0ah
-						BYTE "2. Premium (RM18)", 0dh, 0ah
-						BYTE "3. Couple (RM24)", 0dh, 0ah
-						BYTE "4. Back to Showtime Selection", 0dh, 0ah
-						BYTE "===================================",0dh,0ah,0
+; ========== SEAT BOOKING SYSTEM ==========
+; Seat selection menus
+seatMenu2DHeader BYTE "=========== SEAT Selection(2D) ===========",0dh,0ah
+                 BYTE "1. Standard (RM12)", 0dh, 0ah
+                 BYTE "2. Premium (RM18)", 0dh, 0ah
+                 BYTE "3. Couple (RM24)", 0dh, 0ah
+                 BYTE "4. Back to Showtime Selection", 0dh, 0ah
+                 BYTE "===================================",0dh,0ah,0
 
-	seatMenuIMAXHeader  BYTE "=========== SEAT Selection(IMAX) ===========",0dh,0ah
-						BYTE "1. Standard (RM20)", 0dh, 0ah
-						BYTE "2. Premium (RM30)", 0dh, 0ah
-						BYTE "3. Couple (RM40)", 0dh, 0ah
-						BYTE "4. Back to Showtime Selection", 0dh, 0ah
-						BYTE "===================================",0dh,0ah,0
+seatMenuIMAXHeader BYTE "=========== SEAT Selection(IMAX) ===========",0dh,0ah
+                   BYTE "1. Standard (RM20)", 0dh, 0ah
+                   BYTE "2. Premium (RM30)", 0dh, 0ah
+                   BYTE "3. Couple (RM40)", 0dh, 0ah
+                   BYTE "4. Back to Showtime Selection", 0dh, 0ah
+                   BYTE "===================================",0dh,0ah,0
 
-	; Separate selection prompt
-	seatSelectionPrompt BYTE "Select a seat type (1-4): ",0
+seatSelectionPrompt BYTE "Select a seat type (1-4): ",0
 
-	;Booking confirmation messages
-	bookingConfirm      BYTE 0dh, 0ah, "Booking successful! Enjoy your movie.", 0dh, 0ah, 0
-	bookingFailed       BYTE 0dh, 0ah, "Booking failed! Please try again.", 0dh, 0ah, 0
-	bookingSummary      BYTE "============= BOOKING SUMMARY =============", 0dh, 0ah, 0
-	movieSelected     BYTE "Movie: ", 0
-	showtimeSelected  BYTE "Showtime: ", 0
-	seatTypeSelected  BYTE "Seat Type: ", 0
-	noSeatAvailable     BYTE "Sorry. No seats available for this showtime!!!.", 0dh, 0ah, 0
-	seatsAvailable BYTE "Available seats: ", 0
+; Seat pricing and availability
+seatPrices2D DWORD 12, 18, 24
+seatPricesIMAX DWORD 20, 30, 40
+availableSeats DWORD 50, 20, 30   ; Standard, premium, couple for 10:00 AM
+               DWORD 50, 20, 30   ; Standard, premium, couple for 1:00 PM
+               DWORD 50, 20, 30   ; Standard, premium, couple for 4:00 PM
+               DWORD 50, 20, 30   ; Standard, premium, couple for 7:00 PM
 
-	;Movie names
-	movieNames BYTE "Avatar: The Way of Fire",0dh,0ah
-			   BYTE "Evengers: End Game",0dh,0ah
-			   BYTE "Tatanic",0dh,0ah,0
+; Seat type names for display
+standardText BYTE "Standard", 0
+premiumText  BYTE "Premium", 0
+coupleText   BYTE "Couple", 0
 
-	movie1_2D    BYTE "Avatar: The Way of Fire", 0
-	movie2_2D    BYTE "Avengers: End Game", 0
-	movie3_2D    BYTE "Titanic", 0
+; Seat quantity management
+seatQtyPrompt BYTE "Enter number of seats to book(1-10): ",0
+insufficientSeats BYTE "Sorry, not enough seats available. Please choose a smaller quantity.", 0dh, 0ah, 0
+invalidQtyMsg BYTE "Invalid seat quantity. Please enter a number between 1 and 10.",0dh,0ah,0
+seatsAvailable BYTE "Available seats: ", 0
 
-	movie1_IMAX  BYTE "Avatar: The Way of Water", 0
-	movie2_IMAX  BYTE "Avengers: End Game", 0
-	movie3_IMAX  BYTE "Titanic", 0
+; ========== COMBO MEAL SYSTEM ==========
+comboPrompt BYTE 0dh, 0ah, "Do you want to purchase a combo? (Y/N): ", 0
+comboMenuHeader BYTE "============= COMBO MENU =============", 0dh, 0ah
+                BYTE "1. Combo A - Popcorn + Soft Drink (RM10.95)", 0dh, 0ah
+                BYTE "2. Combo B - Popcorn + Nachos + Soft Drink (RM13.70)", 0dh, 0ah
+                BYTE "3. Combo C - Large Popcorn + 2 Soft Drinks + Candy (RM18.88)", 0dh, 0ah
+                BYTE "4. No Combo", 0dh, 0ah
+                BYTE "======================================", 0dh, 0ah, 0
 
-	; Add these after your existing movie name definitions
-	movieType2D    BYTE "2D", 0
-	movieTypeIMAX  BYTE "IMAX", 0
-	;Seat type names
-	seatTypeNames BYTE "Standard",0dh,0ah
-				  BYTE "Premium",0dh,0ah
-				  BYTE "Couple",0dh,0ah,0
+comboSelectionPrompt BYTE "Select a combo (1-4): ", 0
+comboQtyPrompt BYTE "How many combos do you want to purchase? ", 0
 
-	;Seat prices - 2D
-	seatPrices2D DWORD 12, 18, 24
+; Combo names and pricing
+comboAText BYTE "Combo A - Popcorn + Soft Drink", 0
+comboBText BYTE "Combo B - Popcorn + Nachos + Soft Drink", 0
+comboCText BYTE "Combo C - Large Popcorn + 2 Soft Drinks + Candy", 0
+noComboText BYTE "No Combo", 0
+comboPrices DWORD 1095, 1370, 1888, 0  ; Prices in cents
 
-	;Seat prices - IMAX
-	seatPricesIMAX DWORD 20, 30, 40
+invalidComboQtyMsg BYTE "Invalid combo quantity. Please enter a number greater than 0.",0dh,0ah,0
 
-	;Available seats for each showtime (10:00 AM, 1:00 PM, 4:00 PM, 7:00 PM)
-	availableSeats	DWORD 50, 20, 30   ;- Standard, premium, couple for 10:00 AM
-					DWORD 50, 20, 30   ;- Standard, premium, couple for 1:00 PM
-					DWORD 50, 20, 30   ;- Standard, premium, couple for 4:00 PM
-					DWORD 50, 20, 30   ;- Standard, premium, couple for 7:00 PM
+; ========== BOOKING SUMMARY AND PAYMENT ==========
+bookingSummary BYTE "============= BOOKING SUMMARY =============", 0dh, 0ah, 0
+movieSelected BYTE "Movie: ", 0
+showtimeSelected BYTE "Showtime: ", 0
+seatTypeSelected BYTE "Seat Type: ", 0
+seatsBooked BYTE "Quantity: ", 0
+seatsText BYTE " seats", 0
+totalPriceText BYTE "Total Price: RM", 0
+comboSelectedText BYTE "Combo: ", 0
+comboPriceText BYTE "Combo Price: RM", 0
+comboQtyText BYTE "Combo Quantity: ", 0
+finalTotalText BYTE "Final Total: RM", 0
 
-	;Current booking selections
-	currentMovieType DWORD ? ; 1=2D, 2=IMAX
-	currentMovie	 DWORD ? ; 0=Avatar, 1=Evengers, 2=Tatanic
-	currentShowtime  DWORD ? ; 0=10AM, 1=1PM, 2=4PM, 3=7PM
-	currentSeatType  DWORD ? ; 0=Standard, 1=Premium, 2=Couple
-	currentSeatQty   DWORD ? ; Number of seats to book
+confirmBookingPrompt BYTE "Confirm booking? (Y/N): ", 0
+paymentPrompt BYTE "Proceed to payment? (Y/N): ", 0
+bookingConfirm BYTE 0dh, 0ah, "Booking successful! Enjoy your movie.", 0dh, 0ah, 0
+bookingFailed BYTE 0dh, 0ah, "Booking failed! Please try again.", 0dh, 0ah, 0
 
-	;Seat quantity prompt
-	; Fix the data section - correct the variable name
-	;Seat quantity prompt
-	seatQtyPrompt BYTE "Enter number of seats to book(1-10): ",0
-	insufficientSeats BYTE "Sorry, not enough seats available. Please choose a smaller quantity.", 0dh, 0ah, 0
-	invalidQtyMsg BYTE "Invalid seat quantity. Please enter a number between 1 and 10.",0dh,0ah,0  
+; ========== CURRENT BOOKING SESSION DATA ==========
+currentMovieType DWORD ?  ; 1=2D, 2=IMAX
+currentMovie DWORD ?      ; 0=Avatar, 1=Avengers, 2=Titanic
+currentShowtime DWORD ?   ; 0=10AM, 1=1PM, 2=4PM, 3=7PM
+currentSeatType DWORD ?   ; 0=Standard, 1=Premium, 2=Couple
+currentSeatQty DWORD ?    ; Number of seats to book
+currentCombo DWORD 0      ; 0=no combo, 1=A, 2=B, 3=C
+currentComboQty DWORD 0   ; Quantity of combos selected
 
-	;Input variables
-	userChoice DWORD ?
+; ========== INPUT BUFFERS ==========
+inputUsername BYTE 20 DUP(0)
+inputPassword BYTE 20 DUP(0)
+inputEmail BYTE EMAIL_SIZE DUP(0)
+inputPhone BYTE PHONE_SIZE DUP(0)
+confirmPassword BYTE PASSWORD_SIZE DUP(0)
+menuChoice BYTE ?
+userChoice DWORD ?
 
-	;String buffers
-	tempStr		BYTE 50 DUP(0)
-	newline BYTE 0dh, 0ah, 0
-
-	seatsBooked      BYTE "Quantity: ", 0
-	seatsText        BYTE " seats", 0
-	totalPriceText   BYTE "Total Price: RM", 0
-	confirmBookingPrompt BYTE "Confirm booking? (Y/N): ", 0
-
-	showtime1Text    BYTE "10:00 AM", 0
-	showtime2Text    BYTE "1:00 PM", 0
-	showtime3Text    BYTE "4:00 PM", 0
-	showtime4Text    BYTE "7:00 PM", 0
-	standardText     BYTE "Standard", 0
-	premiumText      BYTE "Premium", 0
-	coupleText       BYTE "Couple", 0
-
-		;Combo options and messages
-	comboPrompt         BYTE 0dh, 0ah, "Do you want to purchase a combo? (Y/N): ", 0
-	comboMenuHeader     BYTE "============= COMBO MENU =============", 0dh, 0ah
-						BYTE "1. Combo A - Popcorn + Soft Drink (RM10.95)", 0dh, 0ah
-						BYTE "2. Combo B - Popcorn + Nachos + Soft Drink (RM13.70)", 0dh, 0ah
-						BYTE "3. Combo C - Large Popcorn + 2 Soft Drinks + Candy (RM18.88)", 0dh, 0ah
-						BYTE "4. No Combo", 0dh, 0ah
-						BYTE "======================================", 0dh, 0ah, 0
-	
-	comboSelectionPrompt BYTE "Select a combo (1-4): ", 0
-	comboQtyPrompt       BYTE "How many combos do you want to purchase? ", 0
-	comboSelectedText    BYTE "Combo: ", 0
-	comboPriceText       BYTE "Combo Price: RM", 0
-	comboQtyText         BYTE "Combo Quantity: ", 0
-	finalTotalText       BYTE "Final Total: RM", 0
-	paymentPrompt        BYTE "Proceed to payment? (Y/N): ", 0
-	
-	; Combo names for display
-	comboAText           BYTE "Combo A - Popcorn + Soft Drink", 0
-	comboBText           BYTE "Combo B - Popcorn + Nachos + Soft Drink", 0
-	comboCText           BYTE "Combo C - Large Popcorn + 2 Soft Drinks + Candy", 0
-	noComboText          BYTE "No Combo", 0
-	
-	; Updated combo prices in cents (10.95 = 1095 cents, 13.70 = 1370 cents, 18.88 = 1888 cents)
-	comboPrices          DWORD 1095, 1370, 1888, 0  ; Combo A, B, C, No combo
-	
-	; Current combo selection
-	currentCombo         DWORD 0  ; 0=no combo, 1=A, 2=B, 3=C
-	currentComboQty      DWORD 0  ; Quantity of combos selected
-	
-	; Decimal formatting strings
-	decimalPoint         BYTE ".", 0
-
-	invalidComboQtyMsg BYTE "Invalid combo quantity. Please enter a number greater than 0.",0dh,0ah,0
+; ========== COMMON SYSTEM MESSAGES ==========
+exitMsg BYTE 0dh, 0ah, "Exiting the program. Goodbye!", 0dh, 0ah, 0
+InvalidChoice BYTE 0dh, 0ah, "Invalid choice. Please select a valid option.", 0dh, 0ah, 0
+continueMsg BYTE 0dh, 0ah, "Press any key to return to main menu...", 0dh, 0ah, 0
+returnToPortal BYTE 0dh, 0ah, "Press any key to return to User Portal...", 0dh, 0ah, 0
+emptyInputMsg BYTE 0dh, 0ah, "Input cannot be empty. Please try again.", 0dh, 0ah, 0
+invalidYNMsg BYTE 0dh, 0ah, "Invalid input! Please enter Y for Yes or N for No.", 0dh, 0ah, 0
+decimalPoint BYTE ".", 0
 
 .code
 main PROC
@@ -319,6 +293,100 @@ main PROC
 	call MainMenu
 	exit
 main ENDP
+
+MainMenu PROC
+	call Clrscr
+	
+MainMenuLoop:
+	mov edx, OFFSET banner
+	call WriteString
+	mov edx, OFFSET mainMenuMsg
+	call WriteString
+	call ReadChar
+	call WriteChar
+	call CrLf
+
+	cmp al, '1'
+	je AdminLoginOption
+	cmp al, '2'
+	je UserLoginOption
+	cmp al, '3'
+	je UserRegOption
+	cmp al, '4'
+	je ExitProgram
+
+	mov edx, OFFSET InvalidChoice
+	call WriteString
+	jmp MainMenuLoop
+
+AdminLoginOption:
+	mov ebx, 0  ; Admin login type
+	call PerformLogin
+	jmp MainMenuLoop
+
+UserLoginOption:
+	mov ebx, 1  ; User login type
+	call PerformLogin
+	jmp MainMenuLoop
+
+UserRegOption:
+	call PerformRegistration
+	jmp MainMenuLoop
+
+ExitProgram:
+	mov edx, OFFSET exitMsg
+	call WriteString
+	ret
+MainMenu ENDP
+
+UserPortal PROC
+	push eax
+	push ebx
+	push edx
+	push ecx
+	push esi
+
+	call Clrscr
+
+UserPortalLoop:
+	mov edx, OFFSET userPortalHeader
+	call WriteString
+	mov edx, OFFSET menuChoice
+	call WriteString
+	call ReadChar
+	call WriteChar
+	call CrLf
+	
+	cmp al, '1'
+	je ViewProfileOption
+	cmp al, '2'
+	je BookingOption
+	cmp al, '3'
+	je LogoutOption
+
+	mov edx, OFFSET InvalidChoice
+	call WriteString
+	jmp UserPortalLoop
+
+ViewProfileOption:
+	call ViewUserProfile
+	jmp UserPortalLoop
+
+BookingOption:
+	call BookingPortal
+	jmp UserPortalLoop
+
+LogoutOption:
+	jmp UserPortalEnd
+
+UserPortalEnd:
+	pop esi
+	pop ecx
+	pop edx
+	pop ebx
+	pop eax
+	ret
+UserPortal ENDP
 
 ; Initialize userData array with predefined users
 InitializeUserData PROC
@@ -497,52 +565,58 @@ GetFieldEnd:
 	ret
 GetUserField ENDP
 
-MainMenu PROC
-	call Clrscr
+; Store current logged-in user information
+StoreCurrentUser PROC
+	push eax
+	push ebx
+	push ecx
+	push esi
+	push edi
 	
-MainMenuLoop:
-	mov edx, OFFSET banner
-	call WriteString
-	mov edx, OFFSET mainMenuMsg
-	call WriteString
-	call ReadChar
-	call WriteChar
-	call CrLf
+	; Clear current user buffer
+	mov ecx, USERNAME_SIZE
+	mov esi, OFFSET currentUser
+	call ClearBuffer
+	
+	; Copy username to current user buffer
+	mov esi, OFFSET inputUsername
+	mov edi, OFFSET currentUser
+	mov ecx, USERNAME_SIZE
+	call CopyStringToBuffer
+	
+	; Find user index in database
+	mov ebx, 0
 
-	cmp al, '1'
-	je AdminLoginOption
-	cmp al, '2'
-	je UserLoginOption
-	cmp al, '3'
-	je UserRegOption
-	cmp al, '4'
-	je ExitProgram
+FindUserIndexLoop:
+	cmp ebx, userCount
+	jae UserIndexNotFound
 
-	; Invalid choice handling
-	mov edx, OFFSET InvalidChoice
-	call WriteString
-	jmp MainMenuLoop
+	mov eax, 0  ; Username field
+	call GetUserField
+	
+	mov esi, OFFSET currentUser
+	call CompareStrings
+	cmp eax, 0
+	je UserIndexFound
+	
+	inc ebx
+	jmp FindUserIndexLoop
 
-AdminLoginOption:
-	mov ebx, 0		; 0 = admin login
-	call PerformLogin
-	jmp MainMenuLoop
+UserIndexFound:
+	mov currentUserIndex, ebx
+	jmp StoreCurrentUserEnd
 
-UserLoginOption:
-	mov ebx, 1		; 1 = user login
-	call PerformLogin
-	jmp MainMenuLoop
+UserIndexNotFound:
+	mov currentUserIndex, -1
 
-UserRegOption:
-	call PerformRegistration
-	jmp MainMenuLoop
-
-ExitProgram:
-	mov edx, OFFSET exitMsg
-	call WriteString
+StoreCurrentUserEnd:
+	pop edi
+	pop esi
+	pop ecx
+	pop ebx
+	pop eax
 	ret
-
-MainMenu ENDP
+StoreCurrentUser ENDP
 
 ; User Registration Procedure
 PerformRegistration PROC
@@ -1061,62 +1135,6 @@ AddNewUser PROC
 	ret
 AddNewUser ENDP
 
-; Store current user's username and index after successful login
-; Input: None (uses inputUsername)
-StoreCurrentUser PROC
-	push eax
-	push ebx
-	push ecx
-	push esi
-	push edi
-	
-	; Clear current user buffer
-	mov ecx, USERNAME_SIZE
-	mov esi, OFFSET currentUser
-	call ClearBuffer
-	
-	; Copy logged-in username to currentUser
-	mov esi, OFFSET inputUsername
-	mov edi, OFFSET currentUser
-	mov ecx, USERNAME_SIZE
-	call CopyStringToBuffer
-	
-	; Find and store user index
-	mov ebx, 0		; Start from first user
-	
-FindUserIndexLoop:
-	cmp ebx, userCount
-	jae UserIndexNotFound
-
-	; Get username field for current user
-	mov eax, 0		; 0 = username field
-	call GetUserField	; EDI = pointer to username
-	
-	; Compare with current user
-	mov esi, OFFSET currentUser
-	call CompareStrings
-	cmp eax, 0
-	je UserIndexFound
-	
-	inc ebx
-	jmp FindUserIndexLoop
-
-UserIndexFound:
-	mov currentUserIndex, ebx
-	jmp StoreCurrentUserEnd
-
-UserIndexNotFound:
-	mov currentUserIndex, -1
-
-StoreCurrentUserEnd:
-	pop edi
-	pop esi
-	pop ecx
-	pop ebx
-	pop eax
-	ret
-StoreCurrentUser ENDP
-
 ; Input: EBX = login type (0 = admin, 1 = user)
 PerformLogin PROC
 	push eax
@@ -1207,56 +1225,6 @@ LoginEnd:
 	ret
 PerformLogin ENDP
 
-UserPortal PROC
-	push eax
-	push ebx
-	push edx
-	push ecx
-	push esi
-
-	call Clrscr
-
-UserPortalLoop:
-	mov edx, OFFSET userPortalHeader
-	call WriteString
-	mov edx, OFFSET menuChoice
-	call WriteString
-	call ReadChar
-	call WriteChar
-	call CrLf
-	cmp al, '1'
-	je ViewProfileOption
-	cmp al, '2'
-	je BookingOption
-	cmp al, '3'
-	je LogoutOption
-
-	; Invalid choice handling
-	mov edx, OFFSET InvalidChoice
-	call WriteString
-	jmp UserPortalLoop
-
-ViewProfileOption:
-	; Display user profile
-	call ViewUserProfile
-	jmp UserPortalLoop
-
-BookingOption:
-	call BookingPortal
-	jmp UserPortalLoop
-
-LogoutOption:
-	jmp UserPortalEnd
-
-UserPortalEnd:
-	pop esi
-	pop ecx
-	pop edx
-	pop ebx
-	pop eax
-	ret
-
-UserPortal ENDP
 
 ; View user profile - displays current logged-in user's information
 ViewUserProfile PROC
@@ -1269,6 +1237,7 @@ ViewUserProfile PROC
 	
 	call Clrscr
 	
+ViewProfileLoop:
 	; Display profile header
 	mov edx, OFFSET profileHeader
 	call WriteString
@@ -1316,11 +1285,12 @@ ViewUserProfile PROC
 	
 	mov edx, OFFSET editProfilePrompt
 	call WriteString
-	call ValidateYNInput	; Use validation instead of ReadChar
+	call ValidateYNInput	; <-- FIX: Use validation for Y/N input
 	cmp al, 'Y'
 	je CallEditProfile
 	cmp al, 'y'
 	je CallEditProfile
+	; Only need to check for 'N'/'n' now
 	jmp ProfileDisplayComplete
 
 CallEditProfile:
@@ -1344,6 +1314,7 @@ ProfileDisplayComplete:
 	pop eax
 	ret
 ViewUserProfile ENDP
+
 ; Edit user profile - allows editing of email, phone, and password
 EditUserProfile PROC
 	push eax
@@ -2027,9 +1998,8 @@ DisplayAvailableSeats PROC
     mul ebx                     ; eax = showtime_index * 3
     mov ebx, eax               ; Store base index
     
-    mov edx, OFFSET newline
-    call WriteString
-    
+	call crlf
+
     ; Display Standard seats
     mov edx, OFFSET seatsAvailable
     call WriteString
@@ -2041,8 +2011,9 @@ DisplayAvailableSeats PROC
     call WriteChar
     mov edx, OFFSET standardText
     call WriteString
-    mov edx, OFFSET newline
-    call WriteString
+
+	call crlf
+
     
     ; Display Premium seats  
     mov edx, OFFSET seatsAvailable
@@ -2056,8 +2027,8 @@ DisplayAvailableSeats PROC
     call WriteChar
     mov edx, OFFSET premiumText
     call WriteString
-    mov edx, OFFSET newline
-    call WriteString
+
+	call crlf
     
     ; Display Couple seats
     mov edx, OFFSET seatsAvailable
@@ -2071,10 +2042,8 @@ DisplayAvailableSeats PROC
     call WriteChar
     mov edx, OFFSET coupleText
     call WriteString
-    mov edx, OFFSET newline
-    call WriteString
-    mov edx, OFFSET newline
-    call WriteString
+	call crlf
+	call crlf
     
     popad
     ret
@@ -2101,128 +2070,130 @@ CheckSeatAvailability PROC
     ret
 CheckSeatAvailability ENDP
 
+; --- FIX: After "Confirm booking?" or "Proceed to payment?" is NO, return to UserPortal, not seat selection ---
+
 ShowBookingSummary PROC
-	push eax
-	push ebx
-	push ecx
-	push edx
-	push esi
-	push edi
-	
-	call Clrscr
-	
-	; Display booking summary header
-	mov edx, OFFSET bookingSummary
-	call WriteString
-	call CrLf
-	
-	; Display selected movie name only
-	mov edx, OFFSET movieSelected
-	call WriteString
-	call DisplayMovieName
-	call CrLf
-	
-	; Display showtime
-	mov edx, OFFSET showtimeSelected
-	call WriteString
-	mov eax, currentShowtime
-	call DisplayShowtimeName
-	call CrLf
-	
-	; Display seat type and quantity
-	mov edx, OFFSET seatTypeSelected
-	call WriteString
-	call DisplaySeatTypeName
-	call CrLf
-	
-	; Display quantity
-	mov edx, OFFSET seatsBooked
-	call WriteString
-	mov eax, currentSeatQty
-	call WriteDec
-	mov edx, OFFSET seatsText
-	call WriteString
-	call CrLf
-	
-	; Display ticket price
-	mov edx, OFFSET totalPriceText
-	call WriteString
-	call CalculateAndDisplayPrice
-	call CrLf
-	
-	; Display combo information if selected (combo was already selected earlier)
-	cmp currentCombo, 0
-	je NoComboSelected
-	
-	mov edx, OFFSET comboSelectedText
-	call WriteString
-	call DisplayComboName
-	call CrLf
-	
-	; Display combo quantity
-	mov edx, OFFSET comboQtyText
-	call WriteString
-	mov eax, currentComboQty
-	call WriteDec
-	call CrLf
-	
-	mov edx, OFFSET comboPriceText
-	call WriteString
-	call DisplayComboPrice
-	call CrLf
+    push eax
+    push ebx
+    push ecx
+    push edx
+    push esi
+    push edi
+
+    call Clrscr
+
+    ; Display booking summary header
+    mov edx, OFFSET bookingSummary
+    call WriteString
+    call CrLf
+
+    ; Display selected movie name only
+    mov edx, OFFSET movieSelected
+    call WriteString
+    call DisplayMovieName
+    call CrLf
+
+    ; Display showtime
+    mov edx, OFFSET showtimeSelected
+    call WriteString
+    mov eax, currentShowtime
+    call DisplayShowtimeName
+    call CrLf
+
+    ; Display seat type and quantity
+    mov edx, OFFSET seatTypeSelected
+    call WriteString
+    call DisplaySeatTypeName
+    call CrLf
+
+    ; Display quantity
+    mov edx, OFFSET seatsBooked
+    call WriteString
+    mov eax, currentSeatQty
+    call WriteDec
+    mov edx, OFFSET seatsText
+    call WriteString
+    call CrLf
+
+    ; Display ticket price
+    mov edx, OFFSET totalPriceText
+    call WriteString
+    call CalculateAndDisplayPrice
+    call CrLf
+
+    ; Display combo information if selected (combo was already selected earlier)
+    cmp currentCombo, 0
+    je NoComboSelected
+
+    mov edx, OFFSET comboSelectedText
+    call WriteString
+    call DisplayComboName
+    call CrLf
+
+    ; Display combo quantity
+    mov edx, OFFSET comboQtyText
+    call WriteString
+    mov eax, currentComboQty
+    call WriteDec
+    call CrLf
+
+    mov edx, OFFSET comboPriceText
+    call WriteString
+    call DisplayComboPrice
+    call CrLf
 
 NoComboSelected:
-	; Display final total
-	mov edx, OFFSET finalTotalText
-	call WriteString
-	call CalculateAndDisplayFinalTotal
-	call CrLf
-	call CrLf
-	
-	; Payment confirmation prompt
-	mov edx, OFFSET paymentPrompt
-	call WriteString
-	call ValidateYNInput	; Use validation instead of ReadChar
-	
-	cmp al, 'Y'
-	je ProcessPayment
-	cmp al, 'y'
-	je ProcessPayment
-	; User declined payment - exit to User Portal
-	mov eax, 999  ; Special return code to exit booking
-	jmp BookingSummaryExit
+    ; Display final total
+    mov edx, OFFSET finalTotalText
+    call WriteString
+    call CalculateAndDisplayFinalTotal
+    call CrLf
+    call CrLf
 
-ProcessPayment:
-	; Confirm booking
-	mov edx, OFFSET confirmBookingPrompt
-	call WriteString
-	call ValidateYNInput	; Use validation instead of ReadChar
-	
-	cmp al, 'Y'
-	je ProcessBooking
-	cmp al, 'y'
-	je ProcessBooking
-	; User cancelled booking - exit to User Portal
-	mov eax, 999  ; Special return code to exit booking
-	jmp BookingSummaryExit
+    ; 1. Confirm booking first
+    mov edx, OFFSET confirmBookingPrompt
+    call WriteString
+    call ValidateYNInput    ; Wait for user input
 
-ProcessBooking:
-	call ProcessSeatBooking
-	mov edx, OFFSET bookingConfirm
-	call WriteString
-	call WaitMsg
-	; After successful booking - exit to User Portal
-	mov eax, 999  ; Special return code to exit booking
-	jmp BookingSummaryExit
+    cmp al, 'Y'
+    je AskPayment
+    cmp al, 'y'
+    je AskPayment
+    ; If not confirmed, return to user portal
+    call UserPortal
+    jmp BookingSummaryExit
+
+AskPayment:
+    ; 2. Proceed to payment
+    mov edx, OFFSET paymentPrompt
+    call WriteString
+    call ValidateYNInput    ; Wait for user input
+
+    cmp al, 'Y'
+    je CompleteBooking
+    cmp al, 'y'
+    je CompleteBooking
+    ; If payment not confirmed, return to user portal
+    call UserPortal
+    jmp BookingSummaryExit
+
+CompleteBooking:
+    ; 3. Only now reduce seat count and show success
+    call ProcessSeatBooking
+    mov edx, OFFSET bookingConfirm
+    call WriteString
+    call WaitMsg
+    call UserPortal
+    jmp BookingSummaryExit
 
 BookingSummaryExit:
-	pop edi
-	pop esi
-	pop edx
-	pop ecx
-	pop ebx
-	pop eax
-	ret
+    pop edi
+    pop esi
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    ret
 ShowBookingSummary ENDP
 
 DisplayMovieName PROC
@@ -2664,7 +2635,7 @@ SelectCombo PROC
 	; Ask if user wants combo
 	mov edx, OFFSET comboPrompt
 	call WriteString
-	call ValidateYNInput	; Use validation instead of ReadChar
+	call ValidateYNInput	; <-- FIX: Use validation for Y/N input
 	
 	cmp al, 'Y'
 	je ShowComboMenu
@@ -2901,13 +2872,6 @@ DisplayFinalTwoDigits:
 	ret
 CalculateAndDisplayFinalTotal ENDP
 
-; Add this error message to your .data section
-invalidYNMsg BYTE 0dh, 0ah, "Invalid input! Please enter Y for Yes or N for No.", 0dh, 0ah, 0
-
-; Add this validation procedure to your .code section
-; Validates Y/N input with error handling
-; Input: None (reads user input)
-; Output: AL = 'Y', 'y', 'N', or 'n' (guaranteed valid)
 ValidateYNInput PROC
     push edx
 
@@ -2915,7 +2879,7 @@ ValidateYNLoop:
     call ReadChar
     call WriteChar
     call CrLf
-    
+
     ; Check for valid Y/N responses
     cmp al, 'Y'
     je ValidYNInput
@@ -2925,7 +2889,7 @@ ValidateYNLoop:
     je ValidYNInput
     cmp al, 'n'
     je ValidYNInput
-    
+
     ; Invalid input - show error and retry
     mov edx, OFFSET invalidYNMsg
     call WriteString
