@@ -285,6 +285,113 @@ emptyInputMsg BYTE 0dh, 0ah, "Input cannot be empty. Please try again.", 0dh, 0a
 invalidYNMsg BYTE 0dh, 0ah, "Invalid input! Please enter Y for Yes or N for No.", 0dh, 0ah, 0
 decimalPoint BYTE ".", 0
 
+;checkout message
+paymentHeader	BYTE 0dh, 0ah, "=========================================================", 0dh, 0ah
+				BYTE " ____                                  _   ", 0dh, 0ah
+				BYTE "|  _ \ __ _ _   _ _ __ ___   ___ _ __ | |_ ", 0dh, 0ah
+				BYTE "| |_) / _` | | | | '_ ` _ \ / _ \ '_ \| __|", 0dh, 0ah
+				BYTE "|  __/ (_| | |_| | | | | | |  __/ | | | |_ ", 0dh, 0ah
+				BYTE "|_|   \__,_|\__, |_| |_| |_|\___|_| |_|\__|", 0dh, 0ah
+				BYTE " __  __     |___/_               _         ", 0dh, 0ah
+				BYTE "|  \/  | ___| |_| |__   ___   __| |        ", 0dh, 0ah
+				BYTE "| |\/| |/ _ \ __| '_ \ / _ \ / _` |        ", 0dh, 0ah
+				BYTE "| |  | |  __/ |_| | | | (_) | (_| |        ", 0dh, 0ah
+				BYTE "|_|  |_|\___|\__|_| |_|\___/ \__,_|        ", 0dh, 0ah
+				BYTE "=========================================================", 0dh, 0ah
+				BYTE "1. Pay with Credit/Debit Card", 0dh, 0ah
+				BYTE "2. Pay with E-Wallet", 0dh, 0ah
+				BYTE "3. Pay with Online Banking", 0dh, 0ah
+				BYTE "4. Cancel Payment and Return to User Portal", 0dh, 0ah
+				BYTE "Please select a payment method (1-4): ", 0
+
+	paymentSuccess BYTE 0dh, 0ah, "Payment successful! Thank you for your purchase.", 0dh, 0ah, 0
+	paymentFailed BYTE 0dh, 0ah, "Payment failed! Please try again.", 0dh, 0ah, 0
+	paymentChoice BYTE ?
+
+	;E-Wallet payment option
+	EwalletPrompt	BYTE "1. GrabPay", 0dh, 0ah
+					BYTE "2. Touch 'n Go eWallet", 0dh, 0ah
+					BYTE "3. Boost", 0dh, 0ah
+					BYTE "Select an E-Wallet (1-3): ", 0
+
+	QRPrompt BYTE "Scan the QR code with your E-Wallet app to complete the payment.", 0dh, 0ah, 0
+	QRImage BYTE "+--------------------+", 0dh, 0ah
+			BYTE "| ### ## ## # # ## ##|", 0dh, 0ah
+			BYTE "| ##   ## ## ## ##  #|", 0dh, 0ah
+			BYTE "| ## # ### # ## ## ##|", 0dh, 0ah
+			BYTE "| ##  ##   ##  ##  ##|", 0dh, 0ah
+			BYTE "| ##   ## ##  # # ## |", 0dh, 0ah
+			BYTE "| ## # ##  # ## # ###|", 0dh, 0ah
+			BYTE "| ## ## # ## #### ## |", 0dh, 0ah
+			BYTE "+--------------------+", 0dh, 0ah, 0
+	QRSuccess BYTE "Payment completed via E-Wallet. Thank you!", 0dh, 0ah, 0
+
+	;Credit/Debit Card payment option
+	cardNumberPrompt BYTE "Enter your card number (16 digits): ", 0
+	cardExpiryPrompt BYTE "Enter card expiry date (MM/YY): ", 0
+	cardCVVPrompt BYTE "Enter card CVV (3 digits): ", 0
+	cardNumber BYTE 20 DUP(0)
+	cardExpiry BYTE 6 DUP(0)
+	cardCVV BYTE 4 DUP(0)
+	cardError BYTE 0dh, 0ah, "Invalid card details. Please try again.", 0dh, 0ah, 0
+
+	;Online Banking payment option
+	bankingPrompt BYTE "Select your bank:", 0dh, 0ah
+					BYTE "1. Maybank", 0dh, 0ah
+					BYTE "2. CIMB", 0dh, 0ah
+					BYTE "3. Public Bank", 0dh, 0ah
+					BYTE "Select a bank (1-3): ", 0
+	bankingUsernamePrompt BYTE "Enter your online banking username: ", 0
+	bankingPasswordPrompt BYTE "Enter your online banking password: ", 0
+	bankingUsername BYTE 30 DUP(0)
+	bankingPassword BYTE 20 DUP(0)
+
+
+	processingPayment BYTE 0dh, 0ah, "=== PROCESSING PAYMENT ===", 0dh, 0ah, 0
+	cardNumberError BYTE 0dh, 0ah, "Card number must be exactly 16 digits!", 0dh, 0ah, 0
+	cardExpiryError BYTE 0dh, 0ah, "Invalid expiry date format! Use MM/YY.", 0dh, 0ah, 0
+	cardCVVError BYTE 0dh, 0ah, "CVV must be exactly 3 digits!", 0dh, 0ah, 0
+	processingCodeMsg BYTE "Processing your payment code... Please wait.", 0dh, 0ah, 0
+	selectedBankMsg BYTE "Selected Bank: ", 0
+	maybank BYTE "Maybank", 0
+	cimb BYTE "CIMB", 0
+	publicbank BYTE "Public Bank", 0
+	ewalletOptions BYTE "Selected E-Wallet: ", 0
+	grabpay BYTE "GrabPay", 0
+	touchngo BYTE "Touch 'n Go eWallet", 0
+	boost BYTE "Boost", 0
+	cardAttemptsExceeded BYTE 0dh, 0ah, "Maximum card attempts exceeded. Returning to payment method selection.", 0dh, 0ah, 0
+
+
+	; ========== RECEIPT GENERATION SYSTEM ==========
+	receiptHeader BYTE "===============================================", 0dh, 0ah
+				  BYTE "           AFC CINEMA RECEIPT", 0dh, 0ah  
+				  BYTE "===============================================", 0dh, 0ah, 0
+
+	receiptFooter BYTE "===============================================", 0dh, 0ah
+				  BYTE "      Thank you for choosing AFC Cinema!", 0dh, 0ah
+				  BYTE "===============================================", 0dh, 0ah, 0
+
+	receiptDateLabel BYTE "Date: ", 0
+	receiptTimeLabel BYTE "Time: ", 0
+	receiptCustomerLabel BYTE "Customer: ", 0
+	slashChar BYTE "/", 0
+	colonChar BYTE ":", 0
+
+	; Date and time storage
+	currentYear WORD ?
+	currentMonth BYTE ?
+	currentDay BYTE ?
+	currentHour BYTE ?
+	currentMinute BYTE ?
+	currentSecond BYTE ?
+	sysTime SYSTEMTIME <>
+
+	; Add these to your receipt data section
+	receiptSeparator BYTE "-----------------------------------------------", 0dh, 0ah, 0
+	receiptEquals BYTE "===============================================", 0dh, 0ah, 0
+	spacePadding BYTE "                    ", 0
+
 .code
 main PROC
 	; Initialize userData with predefined users
@@ -2070,7 +2177,6 @@ CheckSeatAvailability PROC
     ret
 CheckSeatAvailability ENDP
 
-; --- FIX: After "Confirm booking?" or "Proceed to payment?" is NO, return to UserPortal, not seat selection ---
 
 ShowBookingSummary PROC
     push eax
@@ -2170,20 +2276,9 @@ AskPayment:
     call ValidateYNInput    ; Wait for user input
 
     cmp al, 'Y'
-    je CompleteBooking
+    je CheckoutPayment
     cmp al, 'y'
-    je CompleteBooking
-    ; If payment not confirmed, return to user portal
-    call UserPortal
-    jmp BookingSummaryExit
-
-CompleteBooking:
-    ; 3. Only now reduce seat count and show success
-    call ProcessSeatBooking
-    mov edx, OFFSET bookingConfirm
-    call WriteString
-    call WaitMsg
-    call UserPortal
+    je CheckoutPayment
     jmp BookingSummaryExit
 
 BookingSummaryExit:
@@ -2195,6 +2290,883 @@ BookingSummaryExit:
     pop eax
     ret
 ShowBookingSummary ENDP
+
+CheckoutPayment PROC
+	push eax
+	push ebx
+	push ecx
+	push edx
+	push esi
+	push edi
+	call Clrscr
+
+CheckoutLoop:
+	mov edx, OFFSET paymentHeader
+	call WriteString
+	call ReadInt
+	call CrLf
+
+	cmp eax, 1
+	je PaywithCard
+	cmp eax, 2
+	je PaywithEWallet
+	cmp eax, 3
+	je PaywithOnlineBanking
+	cmp eax, 4
+	je CancelPayment
+	
+	; Invalid choice
+	mov edx, OFFSET InvalidChoice
+	call WriteString
+	jmp CheckoutLoop
+
+PaywithCard:
+	call ProcessCardPayment
+	jmp PaymentEnd
+
+PaywithEWallet:
+	call ProcessEWalletPayment
+	jmp PaymentEnd
+
+PaywithOnlineBanking:
+	call ProcessOnlineBankingPayment
+	jmp PaymentEnd
+
+CancelPayment:
+	call UserPortal
+	jmp PaymentEnd
+
+PaymentEnd:
+	pop edi
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+CheckoutPayment ENDP
+
+; Credit/Debit Card Payment with validation
+ProcessCardPayment PROC
+	push eax
+	push ebx
+	push ecx
+	push edx
+	push esi
+
+	call Clrscr
+	mov attempts, 0  ; Reset existing attempts counter for card validation
+	
+CardPaymentLoop:
+	; Check if maximum attempts exceeded using existing maxAttempts
+	mov eax, attempts
+	cmp eax, maxAttempts
+	jae MaxCardAttemptsReached
+
+	; Get card number with validation
+	call GetCardNumber
+	cmp eax, 0
+	je CardValidationFailed ; If validation failed, increment attempts
+
+	; Get expiry date with validation  
+	call GetCardExpiry
+	cmp eax, 0
+	je CardValidationFailed ; If validation failed, increment attempts
+
+	; Get CVV with validation
+	call GetCardCVV
+	cmp eax, 0
+	je CardValidationFailed ; If validation failed, increment attempts
+
+	; All validations passed - process payment immediately (no delay)
+	call CrLf
+	
+	; Payment successful
+	mov edx, OFFSET paymentSuccess
+	call WriteString
+	call ProcessSeatBooking ; Update seat availability
+	call ReadChar
+
+	; Generate receipt
+	call GenerateReceipt
+
+	call UserPortal
+	jmp ProcessCardEnd
+
+CardValidationFailed:
+	; Increment existing attempt counter
+	inc attempts
+	jmp CardPaymentLoop
+
+MaxCardAttemptsReached:
+	; Display message and return to payment method selection
+	mov edx, OFFSET cardAttemptsExceeded
+	call WriteString
+	call ReadChar
+	call CheckoutPayment  ; Return to payment method selection
+	jmp ProcessCardEnd
+
+ProcessCardEnd:
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+ProcessCardPayment ENDP
+
+; Update the GetCardNumber procedure to not loop internally:
+; Get and validate card number (must be 16 digits) - Single attempt version
+GetCardNumber PROC
+	push ebx
+	push ecx
+	push esi
+
+	; Clear buffer
+	mov ecx, 20
+	mov esi, OFFSET cardNumber
+	call ClearBuffer
+
+	mov edx, OFFSET cardNumberPrompt
+	call WriteString
+	mov edx, OFFSET cardNumber
+	mov ecx, 20
+	call ReadString
+
+	; Validate card number (must be exactly 16 digits)
+	mov esi, OFFSET cardNumber
+	call ValidateCardNumber
+	cmp eax, 1
+	je CardNumberValid
+
+	mov edx, OFFSET cardNumberError
+	call WriteString
+	mov eax, 0  ; Return failure
+	jmp GetCardNumberEnd
+
+CardNumberValid:
+	mov eax, 1 ; Return success
+
+GetCardNumberEnd:
+	pop esi
+	pop ecx
+	pop ebx
+	ret
+GetCardNumber ENDP
+
+; Update the GetCardExpiry procedure to not loop internally:
+; Get and validate card expiry date - Single attempt version
+GetCardExpiry PROC
+	push ebx
+	push ecx
+	push esi
+
+	; Clear buffer
+	mov ecx, 6
+	mov esi, OFFSET cardExpiry
+	call ClearBuffer
+
+	mov edx, OFFSET cardExpiryPrompt
+	call WriteString
+	mov edx, OFFSET cardExpiry
+	mov ecx, 6
+	call ReadString
+
+	; Validate expiry format (MM/YY)
+	mov esi, OFFSET cardExpiry
+	call ValidateCardExpiry
+	cmp eax, 1
+	je ExpiryValid
+
+	mov edx, OFFSET cardExpiryError
+	call WriteString
+	mov eax, 0  ; Return failure
+	jmp GetCardExpiryEnd
+
+ExpiryValid:
+	mov eax, 1  ; Return success
+
+GetCardExpiryEnd:
+	pop esi
+	pop ecx
+	pop ebx
+	ret
+GetCardExpiry ENDP
+
+; Update the GetCardCVV procedure to not loop internally:
+; Get and validate CVV - Single attempt version
+GetCardCVV PROC
+	push ebx
+	push ecx
+	push esi
+
+	; Clear buffer
+	mov ecx, 4
+	mov esi, OFFSET cardCVV
+	call ClearBuffer
+
+	mov edx, OFFSET cardCVVPrompt
+	call WriteString
+	mov edx, OFFSET cardCVV
+	mov ecx, 4
+	call ReadString
+
+	; Validate CVV (must be exactly 3 digits)
+	mov esi, OFFSET cardCVV
+	call ValidateCardCVV
+	cmp eax, 1
+	je CVVValid
+
+	mov edx, OFFSET cardCVVError
+	call WriteString
+	mov eax, 0  ; Return failure
+	jmp GetCardCVVEnd
+
+CVVValid:
+	mov eax, 1  ; Return success
+
+GetCardCVVEnd:
+	pop esi
+	pop ecx
+	pop ebx
+	ret
+GetCardCVV ENDP
+
+; Validate card number (16 digits only)
+ValidateCardNumber PROC
+	push ebx
+	push ecx
+	push esi
+
+	mov ecx, 0 ; Counter
+
+ValidateCardLoop:
+	mov al, [esi]
+	cmp al, 0
+	je CheckCardLength
+
+	; Check if character is digit
+	cmp al, '0'
+	jl CardNumberInvalid
+	cmp al, '9'
+	jg CardNumberInvalid
+
+	inc ecx
+	inc esi
+	jmp ValidateCardLoop
+
+CheckCardLength:
+	; Must be exactly 16 digits
+	cmp ecx, 16
+	je CardNumberValidResult
+
+CardNumberInvalid:
+	mov eax, 0
+	jmp ValidateCardEnd
+
+CardNumberValidResult:
+	mov eax, 1
+
+ValidateCardEnd:
+	pop esi
+	pop ecx
+	pop ebx
+	ret
+ValidateCardNumber ENDP
+
+; Validate expiry date format (MM/YY)
+ValidateCardExpiry PROC
+	push ebx
+	push ecx
+	push esi
+
+	; Check format: XX/XX (5 characters)
+	mov ecx, 0
+
+CountExpiryChars:
+	mov al, [esi]
+	cmp al, 0
+	je CheckExpiryFormat
+	inc ecx
+	inc esi
+	jmp CountExpiryChars
+
+CheckExpiryFormat:
+	; Must be exactly 5 characters
+	cmp ecx, 5
+	jne ExpiryInvalid
+
+	; Reset pointer
+	mov esi, OFFSET cardExpiry
+
+	; Check positions: digit, digit, slash, digit, digit
+	mov al, [esi]
+	cmp al, '0'
+	jl ExpiryInvalid
+	cmp al, '9'
+	jg ExpiryInvalid
+
+	inc esi
+	mov al, [esi]
+	cmp al, '0'
+	jl ExpiryInvalid
+	cmp al, '9'
+	jg ExpiryInvalid
+
+	inc esi
+	mov al, [esi]
+	cmp al, '/'
+	jne ExpiryInvalid
+
+	inc esi
+	mov al, [esi]
+	cmp al, '0'
+	jl ExpiryInvalid
+	cmp al, '9'
+	jg ExpiryInvalid
+
+	inc esi
+	mov al, [esi]
+	cmp al, '0'
+	jl ExpiryInvalid
+	cmp al, '9'
+	jg ExpiryInvalid
+
+	mov eax, 1
+	jmp ValidateExpiryEnd
+
+ExpiryInvalid:
+	mov eax, 0
+
+ValidateExpiryEnd:
+	pop esi
+	pop ecx
+	pop ebx
+	ret
+ValidateCardExpiry ENDP
+
+; Validate CVV (3 digits only)
+ValidateCardCVV PROC
+	push ebx
+	push ecx
+	push esi
+
+	mov ecx, 0
+
+ValidateCVVLoop:
+	mov al, [esi]
+	cmp al, 0
+	je CheckCVVLength
+
+	; Check if character is digit
+	cmp al, '0'
+	jl CVVInvalid
+	cmp al, '9'
+	jg CVVInvalid
+
+	inc ecx
+	inc esi
+	jmp ValidateCVVLoop
+
+CheckCVVLength:
+	; Must be exactly 3 digits
+	cmp ecx, 3
+	je CVVValidResult
+
+CVVInvalid:
+	mov eax, 0
+	jmp ValidateCVVEnd
+
+CVVValidResult:
+	mov eax, 1
+
+ValidateCVVEnd:
+	pop esi
+	pop ecx
+	pop ebx
+	ret
+ValidateCardCVV ENDP
+
+; E-Wallet Payment Processing
+ProcessEWalletPayment PROC
+	push eax
+	push edx
+
+	call Clrscr
+
+EWalletLoop:
+	mov edx, OFFSET EwalletPrompt
+	call WriteString
+	call ReadInt
+	call CrLf
+
+	cmp eax, 1
+	je GrabPaySelected
+	cmp eax, 2
+	je TouchNGoSelected
+	cmp eax, 3
+	je BoostSelected
+
+	mov edx, OFFSET InvalidChoice
+	call WriteString
+	jmp EWalletLoop
+
+GrabPaySelected:
+	mov edx, OFFSET ewalletOptions
+	call WriteString
+	mov edx, OFFSET grabpay
+	call WriteString
+	call CrLf
+	jmp ShowQRCode
+
+TouchNGoSelected:
+	mov edx, OFFSET ewalletOptions
+	call WriteString
+	mov edx, OFFSET touchngo
+	call WriteString
+	call CrLf
+	jmp ShowQRCode
+
+BoostSelected:
+	mov edx, OFFSET ewalletOptions
+	call WriteString
+	mov edx, OFFSET boost
+	call WriteString
+	call CrLf
+	jmp ShowQRCode
+
+ShowQRCode:
+	call CrLf
+	mov edx, OFFSET QRPrompt
+	call WriteString
+	call CrLf
+	mov edx, OFFSET QRImage
+	call WriteString
+	call CrLf
+
+	; Keep 10 second delay only for QR code scanning simulation
+	mov edx, OFFSET processingCodeMsg
+	call WriteString
+	mov eax, 10000
+	call Delay
+
+	mov edx, OFFSET QRSuccess
+	call WriteString
+	call ProcessSeatBooking ; Update seat availability
+	call ReadChar
+
+	; Generate receipt
+	call GenerateReceipt
+
+	call UserPortal
+
+	pop edx
+	pop eax
+	ret
+ProcessEWalletPayment ENDP
+
+; Online Banking Payment Processing
+ProcessOnlineBankingPayment PROC
+	push eax
+	push edx
+
+	call Clrscr
+
+BankingLoop:
+	mov edx, OFFSET bankingPrompt
+	call WriteString
+	call ReadInt
+	call CrLf
+
+	cmp eax, 1
+	je MaybankSelected
+	cmp eax, 2
+	je CIMBSelected
+	cmp eax, 3
+	je PublicBankSelected
+
+	mov edx, OFFSET InvalidChoice
+	call WriteString
+	jmp BankingLoop
+
+MaybankSelected:
+	mov edx, OFFSET selectedBankMsg
+	call WriteString
+	mov edx, OFFSET maybank
+	call WriteString
+	call CrLf
+	jmp GetBankingCredentials
+
+CIMBSelected:
+	mov edx, OFFSET selectedBankMsg
+	call WriteString
+	mov edx, OFFSET cimb
+	call WriteString
+	call CrLf
+	jmp GetBankingCredentials
+
+PublicBankSelected:
+	mov edx, OFFSET selectedBankMsg
+	call WriteString
+	mov edx, OFFSET publicbank
+	call WriteString
+	call CrLf
+	jmp GetBankingCredentials
+
+GetBankingCredentials:
+	call CrLf
+
+	; Clear buffers
+	mov ecx, 30
+	mov esi, OFFSET bankingUsername
+	call ClearBuffer
+
+	mov ecx, 20
+	mov esi, OFFSET bankingPassword
+	call ClearBuffer
+
+	; Get username
+	mov edx, OFFSET bankingUsernamePrompt
+	call WriteString
+	mov edx, OFFSET bankingUsername
+	mov ecx, 30
+	call ReadString
+
+	; Get password (masked)
+	mov edx, OFFSET bankingPasswordPrompt
+	call WriteString
+	mov edx, OFFSET bankingPassword
+	mov ecx, 20
+	call ReadPasswordMasked
+
+	; Process payment immediately (no delay)
+	call CrLf
+
+	mov edx, OFFSET paymentSuccess
+	call WriteString
+	call ProcessSeatBooking ; Update seat availability
+	call ReadChar
+
+	; Generate receipt
+	call GenerateReceipt
+
+	call UserPortal
+
+	pop edx
+	pop eax
+	ret
+ProcessOnlineBankingPayment ENDP
+
+; Generate receipt after successful payment
+GenerateReceipt PROC
+	push eax
+	push ebx
+	push ecx
+	push edx
+	push esi
+	push edi
+
+	call Clrscr
+
+	; Display receipt header
+	mov edx, OFFSET receiptHeader
+	call WriteString
+	call CrLf
+
+	; Get current system time
+	INVOKE GetLocalTime, ADDR sysTime
+
+	; Display actual date and time
+	call DisplayReceiptDateTime
+	call CrLf
+
+	; Display customer name
+	mov edx, OFFSET receiptCustomerLabel
+	call WriteString
+	mov edx, OFFSET currentUser
+	call WriteString
+	call CrLf
+	call CrLf
+
+	; Display transaction details with proper spacing
+	mov al, '-'
+	mov ecx, 47
+PrintDashes1:
+	call WriteChar
+	loop PrintDashes1
+	call CrLf
+
+	; Display movie information with padding
+	mov edx, OFFSET movieSelected
+	call WriteString
+	call DisplayMovieName
+	call CrLf
+
+	; Display showtime with padding
+	mov edx, OFFSET showtimeSelected
+	call WriteString
+	mov eax, currentShowtime
+	call DisplayShowtimeName
+	call CrLf
+
+	; Display seat information with padding
+	mov edx, OFFSET seatTypeSelected
+	call WriteString
+	call DisplaySeatTypeName
+	call CrLf
+
+	; Display quantity with proper formatting
+	mov edx, OFFSET seatsBooked
+	call WriteString
+	mov eax, currentSeatQty
+	call WriteDec
+	mov edx, OFFSET seatsText
+	call WriteString
+	call CrLf
+
+	call CrLf
+
+	; Ticket pricing section
+	call DisplayTicketPricing
+	call CrLf
+
+	; Display combo information if selected
+	cmp currentCombo, 0
+	je NoReceiptCombo
+
+	call DisplayComboPricing
+
+NoReceiptCombo:
+	; Display separator line
+	mov al, '-'
+	mov ecx, 47
+PrintDashes2:
+	call WriteChar
+	loop PrintDashes2
+	call CrLf
+
+	; Display final total with emphasis
+	call DisplayFinalTotalFormatted
+	call CrLf
+
+	; Display separator line
+	mov al, '='
+	mov ecx, 47
+PrintEquals:
+	call WriteChar
+	loop PrintEquals
+	call CrLf
+	call CrLf
+
+	; Display receipt footer
+	mov edx, OFFSET receiptFooter
+	call WriteString
+
+	; Wait for user to continue
+	mov edx, OFFSET returnToPortal
+	call WriteString
+	call ReadChar
+
+	pop edi
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+GenerateReceipt ENDP
+
+; Display ticket pricing with proper alignment
+DisplayTicketPricing PROC
+	push eax
+	push ebx
+	push ecx
+	push edx
+
+	; Display ticket line item
+	mov eax, currentSeatQty
+	call WriteDec
+	mov al, 'x'
+	call WriteChar
+	mov al, ' '
+	call WriteChar
+	
+	call DisplaySeatTypeName
+	mov al, ' '
+	call WriteChar
+	mov al, '('
+	call WriteChar
+	
+	; Display movie type
+	cmp currentMovieType, 0
+	je Display2DType
+	mov edx, OFFSET movieTypeIMAX
+	jmp DisplayType
+Display2DType:
+	mov edx, OFFSET movieType2D
+DisplayType:
+	call WriteString
+	mov al, ')'
+	call WriteChar
+	
+	; Add spacing and display price
+	call DisplayRightAlignedPrice
+	call CrLf
+
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+DisplayTicketPricing ENDP
+
+; Display combo pricing with proper alignment
+DisplayComboPricing PROC
+	push eax
+	push edx
+
+	; Display combo line item
+	mov eax, currentComboQty
+	call WriteDec
+	mov al, 'x'
+	call WriteChar
+	mov al, ' '
+	call WriteChar
+	
+	call DisplayComboName
+	call CrLf
+	
+	; Display combo price with right alignment
+	mov al, ' '
+	mov ecx, 25
+PrintSpaces:
+	call WriteChar
+	loop PrintSpaces
+	
+	mov edx, OFFSET comboPriceText
+	call WriteString
+	call DisplayComboPrice
+	call CrLf
+	call CrLf
+
+	pop edx
+	pop eax
+	ret
+DisplayComboPricing ENDP
+
+; Display right-aligned price for tickets
+DisplayRightAlignedPrice PROC
+	push eax
+	push edx
+
+	; Add spacing for right alignment
+	mov al, ' '
+	mov ecx, 15
+AlignSpaces:
+	call WriteChar
+	loop AlignSpaces
+
+	mov edx, OFFSET totalPriceText
+	call WriteString
+	call CalculateAndDisplayPrice
+
+	pop edx
+	pop eax
+	ret
+DisplayRightAlignedPrice ENDP
+
+; Display formatted final total with emphasis
+DisplayFinalTotalFormatted PROC
+	push eax
+	push edx
+
+	; Display "TOTAL:" with emphasis
+	mov al, ' '
+	mov ecx, 10
+TotalSpaces:
+	call WriteChar
+	loop TotalSpaces
+
+	mov edx, OFFSET finalTotalText
+	call WriteString
+	call CalculateAndDisplayFinalTotal
+
+	pop edx
+	pop eax
+	ret
+DisplayFinalTotalFormatted ENDP
+
+; Display formatted date and time on receipt using actual system time
+DisplayReceiptDateTime PROC
+	push eax
+	push ebx
+	push edx
+
+	; Display date label
+	mov edx, OFFSET receiptDateLabel
+	call WriteString
+	
+	; Display month
+	movzx eax, sysTime.wMonth
+	call WriteDec
+	mov edx, OFFSET slashChar
+	call WriteString
+	
+	; Display day
+	movzx eax, sysTime.wDay
+	call WriteDec
+	mov edx, OFFSET slashChar
+	call WriteString
+	
+	; Display year
+	movzx eax, sysTime.wYear
+	call WriteDec
+
+	; Add spaces between date and time
+	mov al, ' '
+	call WriteChar
+	call WriteChar
+	call WriteChar
+
+	; Display time label
+	mov edx, OFFSET receiptTimeLabel
+	call WriteString
+	
+	; Display hours
+	movzx eax, sysTime.wHour
+	call WriteDec
+	mov edx, OFFSET colonChar
+	call WriteString
+	
+	; Display minutes with leading zero if needed
+	movzx eax, sysTime.wMinute
+	cmp eax, 10
+	jae DisplayMinutes
+	mov al, '0'
+	call WriteChar
+	movzx eax, sysTime.wMinute
+
+DisplayMinutes:
+	call WriteDec
+	mov edx, OFFSET colonChar
+	call WriteString
+	
+	; Display seconds with leading zero if needed
+	movzx eax, sysTime.wSecond
+	cmp eax, 10
+	jae DisplaySeconds
+	mov al, '0'
+	call WriteChar
+	movzx eax, sysTime.wSecond
+
+DisplaySeconds:
+	call WriteDec
+
+	pop edx
+	pop ebx
+	pop eax
+	ret
+DisplayReceiptDateTime ENDP
 
 DisplayMovieName PROC
 	push eax
@@ -2558,10 +3530,18 @@ ValidateCredentials ENDP
 
 CompareStrings PROC
 	; Compares two null-terminated strings
-	;ESI = first string, EDI = second string
+	; ESI = first string, EDI = second string
 	; Returns 0 if equal, non-zero if not
 	push ebx
 	push ecx
+	push esi
+	push edi
+	
+	; Safety check for null pointers
+	cmp esi, 0
+	je NotEqual
+	cmp edi, 0
+	je NotEqual
 
 CompareLoop:
 	mov al, [esi]
@@ -2583,6 +3563,8 @@ Equal:
 	mov eax, 0
 
 CompareEnd:
+	pop edi
+	pop esi
 	pop ecx
 	pop ebx
 	ret
@@ -2632,19 +3614,21 @@ SelectCombo PROC
 	push eax
 	push edx
 	
+	; Initialize combo values to safe defaults
+	mov currentCombo, 0
+	mov currentComboQty, 0
+	
 	; Ask if user wants combo
 	mov edx, OFFSET comboPrompt
 	call WriteString
-	call ValidateYNInput	; <-- FIX: Use validation for Y/N input
+	call ValidateYNInput
 	
 	cmp al, 'Y'
 	je ShowComboMenu
 	cmp al, 'y'
 	je ShowComboMenu
 	
-	; User doesn't want combo
-	mov currentCombo, 0
-	mov currentComboQty, 0
+	; User doesn't want combo - values already set to 0
 	jmp SelectComboEnd
 
 ShowComboMenu:
@@ -2756,6 +3740,7 @@ DisplayComboName ENDP
 DisplayComboPrice PROC
 	push eax
 	push ebx
+	push ecx
 	push edx
 	
 	mov eax, currentCombo
@@ -2764,7 +3749,18 @@ DisplayComboPrice PROC
 	
 	dec eax  ; Convert to 0-based index
 	mov ebx, OFFSET comboPrices
-	mov eax, [ebx + eax*4]  ; Get price in cents
+	mov ecx, [ebx + eax*4]  ; Get price per combo in cents
+	
+	; Multiply by quantity
+	mov eax, currentComboQty
+	cmp eax, 0
+	je DisplayComboPriceEnd  ; Safety check
+	
+	; Use 16-bit multiplication to prevent overflow
+	cmp eax, 65535
+	jae DisplayComboPriceEnd  ; Prevent overflow
+	
+	mul ecx  ; EAX = total combo price in cents
 	
 	; Display whole part (divide by 100)
 	mov ebx, 100
@@ -2775,8 +3771,10 @@ DisplayComboPrice PROC
 	call WriteDec  ; Display whole part
 	
 	; Display decimal point
+	push edx
 	mov edx, OFFSET decimalPoint
 	call WriteString
+	pop edx
 	
 	; Display decimal part
 	pop eax  ; Restore remainder
@@ -2794,6 +3792,7 @@ DisplayTwoDigits:
 
 DisplayComboPriceEnd:
 	pop edx
+	pop ecx
 	pop ebx
 	pop eax
 	ret
@@ -2805,6 +3804,7 @@ CalculateAndDisplayFinalTotal PROC
 	push ebx
 	push ecx
 	push edx
+	push esi
 	
 	; Calculate ticket price in cents
 	mov eax, currentSeatType
@@ -2828,18 +3828,26 @@ GetFinalPrice:
 	; Convert to cents
 	mov ebx, 100
 	mul ebx  ; EAX = ticket price in cents
+	mov esi, eax  ; Store ticket price in ESI
 	
 	; Add combo price if selected
 	cmp currentCombo, 0
 	je NoComboPrice
 	
-	mov ebx, currentCombo
-	dec ebx  ; Convert to 0-based index
-	mov ecx, OFFSET comboPrices
-	add eax, [ecx + ebx*4]  ; Add combo price
+	mov eax, currentCombo
+	dec eax  ; Convert to 0-based index
+	mov ebx, OFFSET comboPrices
+	mov ecx, [ebx + eax*4]  ; Get combo price per unit in cents
+	
+	; Multiply by combo quantity
+	mov eax, currentComboQty
+	mul ecx  ; EAX = total combo price in cents
+	
+	add esi, eax  ; Add combo price to ticket price
 
 NoComboPrice:
 	; Display final total with decimal
+	mov eax, esi  ; Get total price
 	mov ebx, 100
 	mov edx, 0
 	div ebx  ; EAX = whole part, EDX = remainder
@@ -2848,8 +3856,10 @@ NoComboPrice:
 	call WriteDec  ; Display whole part
 	
 	; Display decimal point
+	push edx
 	mov edx, OFFSET decimalPoint
 	call WriteString
+	pop edx
 	
 	; Display decimal part
 	pop eax  ; Restore remainder
@@ -2865,12 +3875,14 @@ NoComboPrice:
 DisplayFinalTwoDigits:
 	call WriteDec
 	
+	pop esi
 	pop edx
 	pop ecx
 	pop ebx
 	pop eax
 	ret
 CalculateAndDisplayFinalTotal ENDP
+
 
 ValidateYNInput PROC
     push edx
