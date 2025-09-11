@@ -397,6 +397,11 @@ paymentHeader	BYTE 0dh, 0ah, "==================================================
 	receiptEquals BYTE "===============================================", 0dh, 0ah, 0
 	spacePadding BYTE "                    ", 0
 
+	rewardPointsEarned BYTE 0dh, 0ah, "Congratulations! You earned ", 0
+	rewardPointsText BYTE " reward points from this purchase.", 0dh, 0ah, 0
+	rewardPointsBalance BYTE "Your new reward points balance: ", 0
+	pointsEarnedMsg BYTE 0dh, 0ah, "=== REWARD POINTS EARNED ===", 0dh, 0ah, 0
+
 .code
 main PROC
 	; Initialize userData with predefined users
@@ -405,6 +410,139 @@ main PROC
 	call MainMenu
 	exit
 main ENDP
+
+; Calculate and award reward points (RM1 = 1 point)
+AwardRewardPoints PROC
+	push eax
+	push ebx
+	push ecx
+	push edx
+	push esi
+	push edi
+	
+	; Calculate total purchase amount in RM (whole number only)
+	call CalculateFinalTotalInRM
+	mov ebx, eax  ; Store total RM in EBX (this will be the points to award)
+	
+	; Get current user's reward points
+	mov ebx, currentUserIndex
+	cmp ebx, -1
+	je AwardPointsEnd  ; Exit if no valid user
+	
+	mov eax, 4  ; reward points field
+	call GetUserField  ; EDI = pointer to reward points
+	
+	; Load current points and add new points
+	movzx ecx, WORD PTR [edi]  ; Load current points
+	call CalculateFinalTotalInRM  ; Get total RM again
+	add ecx, eax  ; Add earned points to current points
+	
+	; Store updated points (ensure it doesn't exceed WORD limit)
+	cmp ecx, 65535
+	jle StorePoints
+	mov ecx, 65535  ; Cap at maximum WORD value
+
+StorePoints:
+	mov WORD PTR [edi], cx  ; Store updated points
+	
+	; Display reward points earned message
+	call CrLf
+	mov edx, OFFSET pointsEarnedMsg
+	call WriteString
+	
+	mov edx, OFFSET rewardPointsEarned
+	call WriteString
+	call WriteDec  ; Display points earned (still in EAX)
+	mov edx, OFFSET rewardPointsText
+	call WriteString
+	
+	; Display new balance
+	mov edx, OFFSET rewardPointsBalance
+	call WriteString
+	mov eax, ecx  ; Move new total to EAX
+	call WriteDec
+	call CrLf
+	call CrLf
+
+AwardPointsEnd:
+	pop edi
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+AwardRewardPoints ENDP
+
+; Calculate final total in whole RM (for reward points calculation)
+CalculateFinalTotalInRM PROC
+	push ebx
+	push ecx
+	push edx
+	push esi
+	
+	; Calculate ticket price in cents
+	mov eax, currentSeatType
+	dec eax  ; Convert to 0-based index
+	
+	cmp currentMovieType, 0
+	je UseRM2DPrices
+	
+	; Use IMAX prices
+	mov ebx, OFFSET seatPricesIMAX
+	jmp GetRMPrice
+
+UseRM2DPrices:
+	mov ebx, OFFSET seatPrices2D
+
+GetRMPrice:
+	mov ecx, [ebx + eax*4]  ; Get price per seat
+	mov eax, currentSeatQty
+	mul ecx  ; Total ticket price
+	
+	; Convert to cents
+	mov ebx, 100
+	mul ebx  ; EAX = ticket price in cents
+	mov esi, eax  ; Store ticket price in ESI
+	
+	; Add combo price if selected
+	cmp currentCombo, 0
+	je NoRMComboPrice
+	
+	mov eax, currentCombo
+	dec eax  ; Convert to 0-based index
+	mov ebx, OFFSET comboPrices
+	mov ecx, [ebx + eax*4]  ; Get combo price per unit in cents
+	
+	; Multiply by combo quantity
+	mov eax, currentComboQty
+	mul ecx  ; EAX = total combo price in cents
+	
+	add esi, eax  ; Add combo price to ticket price
+
+NoRMComboPrice:
+	; Calculate SST (6% of subtotal) and add to total
+	mov eax, esi  ; Get subtotal in cents
+	mov ebx, SST_RATE  ; 6%
+	mul ebx  ; EAX = subtotal * 6
+	mov ebx, 100
+	mov edx, 0
+	div ebx  ; EAX = SST amount in cents
+	
+	add esi, eax  ; Add SST to subtotal for final total
+
+	; Convert total from cents to whole RM (divide by 100, ignore remainder)
+	mov eax, esi  ; Get total price in cents
+	mov ebx, 100
+	mov edx, 0
+	div ebx  ; EAX = whole RM amount (reward points to award)
+	
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
+	ret
+CalculateFinalTotalInRM ENDP
 
 MainMenu PROC
 	call Clrscr
@@ -2539,7 +2677,7 @@ PaymentEnd:
 	ret
 CheckoutPayment ENDP
 
-; Credit/Debit Card Payment with validation
+; Update ProcessCardPayment procedure to include reward points
 ProcessCardPayment PROC
 	push eax
 	push ebx
@@ -2578,6 +2716,10 @@ CardPaymentLoop:
 	mov edx, OFFSET paymentSuccess
 	call WriteString
 	call ProcessSeatBooking ; Update seat availability
+	
+	; Award reward points
+	call AwardRewardPoints
+	
 	call ReadChar
 
 	; Generate receipt
@@ -2880,7 +3022,7 @@ ValidateCVVEnd:
 	ret
 ValidateCardCVV ENDP
 
-; E-Wallet Payment Processing
+; Update ProcessEWalletPayment procedure to include reward points
 ProcessEWalletPayment PROC
 	push eax
 	push edx
@@ -2946,6 +3088,10 @@ ShowQRCode:
 	mov edx, OFFSET QRSuccess
 	call WriteString
 	call ProcessSeatBooking ; Update seat availability
+	
+	; Award reward points
+	call AwardRewardPoints
+	
 	call ReadChar
 
 	; Generate receipt
@@ -2958,7 +3104,7 @@ ShowQRCode:
 	ret
 ProcessEWalletPayment ENDP
 
-; Online Banking Payment Processing
+; Update ProcessOnlineBankingPayment procedure to include reward points
 ProcessOnlineBankingPayment PROC
 	push eax
 	push edx
@@ -3038,6 +3184,10 @@ GetBankingCredentials:
 	mov edx, OFFSET paymentSuccess
 	call WriteString
 	call ProcessSeatBooking ; Update seat availability
+	
+	; Award reward points
+	call AwardRewardPoints
+	
 	call ReadChar
 
 	; Generate receipt
