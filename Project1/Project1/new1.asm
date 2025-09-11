@@ -251,6 +251,9 @@ totalPriceText BYTE "Total Price: RM", 0
 comboSelectedText BYTE "Combo: ", 0
 comboPriceText BYTE "Combo Price: RM", 0
 comboQtyText BYTE "Combo Quantity: ", 0
+; Add SST-related messages
+subtotalText BYTE "Subtotal: RM", 0
+sstText BYTE "SST (6%): RM", 0
 finalTotalText BYTE "Final Total: RM", 0
 
 confirmBookingPrompt BYTE "Confirm booking? (Y/N): ", 0
@@ -266,6 +269,8 @@ currentSeatType DWORD ?   ; 0=Standard, 1=Premium, 2=Couple
 currentSeatQty DWORD ?    ; Number of seats to book
 currentCombo DWORD 0      ; 0=no combo, 1=A, 2=B, 3=C
 currentComboQty DWORD 0   ; Quantity of combos selected
+; Add SST rate constant
+SST_RATE EQU 6            ; 6% SST rate
 
 ; ========== INPUT BUFFERS ==========
 inputUsername BYTE 20 DUP(0)
@@ -2249,7 +2254,19 @@ ShowBookingSummary PROC
     call CrLf
 
 NoComboSelected:
-    ; Display final total
+    ; Display subtotal (before tax)
+    mov edx, OFFSET subtotalText
+    call WriteString
+    call CalculateAndDisplaySubtotal
+    call CrLf
+
+    ; Display SST amount
+    mov edx, OFFSET sstText
+    call WriteString
+    call CalculateAndDisplaySST
+    call CrLf
+
+    ; Display final total (including SST)
     mov edx, OFFSET finalTotalText
     call WriteString
     call CalculateAndDisplayFinalTotal
@@ -2290,6 +2307,182 @@ BookingSummaryExit:
     pop eax
     ret
 ShowBookingSummary ENDP
+
+CalculateAndDisplaySubtotal PROC
+	push eax
+	push ebx
+	push ecx
+	push edx
+	push esi
+	
+	; Calculate ticket price in cents
+	mov eax, currentSeatType
+	dec eax  ; Convert to 0-based index
+	
+	cmp currentMovieType, 0
+	je UseSubtotal2DPrices
+	
+	; Use IMAX prices
+	mov ebx, OFFSET seatPricesIMAX
+	jmp GetSubtotalPrice
+
+UseSubtotal2DPrices:
+	mov ebx, OFFSET seatPrices2D
+
+GetSubtotalPrice:
+	mov ecx, [ebx + eax*4]  ; Get price per seat
+	mov eax, currentSeatQty
+	mul ecx  ; Total ticket price
+	
+	; Convert to cents
+	mov ebx, 100
+	mul ebx  ; EAX = ticket price in cents
+	mov esi, eax  ; Store ticket price in ESI
+	
+	; Add combo price if selected
+	cmp currentCombo, 0
+	je NoSubtotalComboPrice
+	
+	mov eax, currentCombo
+	dec eax  ; Convert to 0-based index
+	mov ebx, OFFSET comboPrices
+	mov ecx, [ebx + eax*4]  ; Get combo price per unit in cents
+	
+	; Multiply by combo quantity
+	mov eax, currentComboQty
+	mul ecx  ; EAX = total combo price in cents
+	
+	add esi, eax  ; Add combo price to ticket price
+
+NoSubtotalComboPrice:
+	; Display subtotal with decimal
+	mov eax, esi  ; Get subtotal price
+	mov ebx, 100
+	mov edx, 0
+	div ebx  ; EAX = whole part, EDX = remainder
+	
+	push edx  ; Save remainder
+	call WriteDec  ; Display whole part
+	
+	; Display decimal point
+	push edx
+	mov edx, OFFSET decimalPoint
+	call WriteString
+	pop edx
+	
+	; Display decimal part
+	pop eax  ; Restore remainder
+	cmp eax, 10
+	jae DisplaySubtotalTwoDigits
+	
+	; Single digit, add leading zero
+	push eax
+	mov al, '0'
+	call WriteChar
+	pop eax
+
+DisplaySubtotalTwoDigits:
+	call WriteDec
+	
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+CalculateAndDisplaySubtotal ENDP
+
+; Calculate and display SST amount (6% of subtotal)
+CalculateAndDisplaySST PROC
+	push eax
+	push ebx
+	push ecx
+	push edx
+	push esi
+	
+	; Calculate subtotal in cents first
+	mov eax, currentSeatType
+	dec eax  ; Convert to 0-based index
+	
+	cmp currentMovieType, 0
+	je UseSST2DPrices
+	
+	; Use IMAX prices
+	mov ebx, OFFSET seatPricesIMAX
+	jmp GetSSTPrice
+
+UseSST2DPrices:
+	mov ebx, OFFSET seatPrices2D
+
+GetSSTPrice:
+	mov ecx, [ebx + eax*4]  ; Get price per seat
+	mov eax, currentSeatQty
+	mul ecx  ; Total ticket price
+	
+	; Convert to cents
+	mov ebx, 100
+	mul ebx  ; EAX = ticket price in cents
+	mov esi, eax  ; Store ticket price in ESI
+	
+	; Add combo price if selected
+	cmp currentCombo, 0
+	je NoSSTComboPrice
+	
+	mov eax, currentCombo
+	dec eax  ; Convert to 0-based index
+	mov ebx, OFFSET comboPrices
+	mov ecx, [ebx + eax*4]  ; Get combo price per unit in cents
+	
+	; Multiply by combo quantity
+	mov eax, currentComboQty
+	mul ecx  ; EAX = total combo price in cents
+	
+	add esi, eax  ; Add combo price to ticket price
+
+NoSSTComboPrice:
+	; Calculate SST (6% of subtotal)
+	mov eax, esi  ; Get subtotal in cents
+	mov ebx, SST_RATE  ; 6%
+	mul ebx  ; EAX = subtotal * 6
+	mov ebx, 100
+	mov edx, 0
+	div ebx  ; EAX = SST amount in cents
+	
+	; Display SST with decimal
+	mov ebx, 100
+	mov edx, 0
+	div ebx  ; EAX = whole part, EDX = remainder
+	
+	push edx  ; Save remainder
+	call WriteDec  ; Display whole part
+	
+	; Display decimal point
+	push edx
+	mov edx, OFFSET decimalPoint
+	call WriteString
+	pop edx
+	
+	; Display decimal part
+	pop eax  ; Restore remainder
+	cmp eax, 10
+	jae DisplaySSTTwoDigits
+	
+	; Single digit, add leading zero
+	push eax
+	mov al, '0'
+	call WriteChar
+	pop eax
+
+DisplaySSTTwoDigits:
+	call WriteDec
+	
+	pop esi
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+	ret
+CalculateAndDisplaySST ENDP
 
 CheckoutPayment PROC
 	push eax
@@ -3020,6 +3213,7 @@ DisplayType:
 	ret
 DisplayTicketPricing ENDP
 
+
 ; Display combo pricing with proper alignment
 DisplayComboPricing PROC
 	push eax
@@ -3080,6 +3274,36 @@ DisplayFinalTotalFormatted PROC
 	push eax
 	push edx
 
+	; Display subtotal first
+	mov al, ' '
+	mov ecx, 10
+SubtotalSpaces:
+	call WriteChar
+	loop SubtotalSpaces
+	mov edx, OFFSET subtotalText
+	call WriteString
+	call CalculateAndDisplaySubtotal
+	call CrLf
+
+	; Display SST
+	mov al, ' '
+	mov ecx, 10
+SSTSpaces:
+	call WriteChar
+	loop SSTSpaces
+	mov edx, OFFSET sstText
+	call WriteString
+	call CalculateAndDisplaySST
+	call CrLf
+
+	; Display separator line
+	mov al, '-'
+	mov ecx, 47
+PrintDashes:
+	call WriteChar
+	loop PrintDashes
+	call CrLf
+
 	; Display "TOTAL:" with emphasis
 	mov al, ' '
 	mov ecx, 10
@@ -3095,7 +3319,6 @@ TotalSpaces:
 	pop eax
 	ret
 DisplayFinalTotalFormatted ENDP
-
 ; Display formatted date and time on receipt using actual system time
 DisplayReceiptDateTime PROC
 	push eax
@@ -3846,8 +4069,18 @@ GetFinalPrice:
 	add esi, eax  ; Add combo price to ticket price
 
 NoComboPrice:
+	; Calculate SST (6% of subtotal) and add to total
+	mov eax, esi  ; Get subtotal in cents
+	mov ebx, SST_RATE  ; 6%
+	mul ebx  ; EAX = subtotal * 6
+	mov ebx, 100
+	mov edx, 0
+	div ebx  ; EAX = SST amount in cents
+	
+	add esi, eax  ; Add SST to subtotal for final total
+
 	; Display final total with decimal
-	mov eax, esi  ; Get total price
+	mov eax, esi  ; Get total price (including SST)
 	mov ebx, 100
 	mov edx, 0
 	div ebx  ; EAX = whole part, EDX = remainder
@@ -3882,7 +4115,6 @@ DisplayFinalTwoDigits:
 	pop eax
 	ret
 CalculateAndDisplayFinalTotal ENDP
-
 
 ValidateYNInput PROC
     push edx
