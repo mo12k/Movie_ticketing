@@ -413,6 +413,23 @@ paymentHeader	BYTE 0dh, 0ah, "==================================================
 	;debugIndexMsg		BYTE "Index: ",0
 	;debugCompareMsg		BYTE " Required: ",0
 	;debugCompareMsg2	BYTE " Required: ",0
+
+	;e-Ticket 
+	eticketHeader	 BYTE "===============================================", 0dh, 0ah
+				     BYTE "===== E - T I C K E T =====", 0dh, 0ah
+					 BYTE "===============================================", 0dh, 0ah, 0
+	
+	eticketFooter    BYTE "Thank you for your purchase. Enjoy your movie!",0
+
+
+	; ASCII
+	QRImage2 BYTE " [==== QR / BARCODE ====]",0dh, 0ah
+		    BYTE " |  █ █   █ █   █ █   |",0dh, 0ah
+		    BYTE " |  █   █   █   █   █ |",0dh, 0ah
+		    BYTE " |  █ █   █ █   █ █   |",0dh, 0ah
+		    BYTE " |        SCAN        |",0dh, 0ah
+		    BYTE " ======================",0
+		    
 	
 .code
 main PROC
@@ -2859,8 +2876,10 @@ CardPaymentLoop:
 
 	; Generate receipt
 	call GenerateReceipt
-
+	call CrLf
+	call GenerateETicket
 	call UserPortal
+
 	jmp ProcessCardEnd
 
 CardValidationFailed:
@@ -3231,7 +3250,8 @@ ShowQRCode:
 
 	; Generate receipt
 	call GenerateReceipt
-
+	call CrLf
+	call GenerateETicket
 	call UserPortal
 
 	pop edx
@@ -3327,7 +3347,8 @@ GetBankingCredentials:
 
 	; Generate receipt
 	call GenerateReceipt
-
+	call CrLf
+	call GenerateETicket
 	call UserPortal
 
 	pop edx
@@ -3394,6 +3415,11 @@ ConfirmRewardPayment:
     call CrLf
 	call ProcessSeatBooking
 	call GenerateReceipt
+	call CrLf
+
+	call GenerateETicket
+	call UserPortal
+
     mov eax, 1                        ; success flag
     jmp EndProcessRewardPointsPayment
 
@@ -3525,7 +3551,7 @@ PrintEquals:
 	call WriteString
 
 	; Wait for user to continue
-	mov edx, OFFSET returnToPortal
+	mov edx, OFFSET pressAnyKeyMsg
 	call WriteString
 	call ReadChar
 
@@ -3537,6 +3563,137 @@ PrintEquals:
 	pop eax
 	ret
 GenerateReceipt ENDP
+
+GenerateETicket PROC
+    push eax
+    push ebx
+    push ecx
+    push edx
+    push esi
+    push edi
+
+    call Clrscr
+
+    ;header
+    mov edx, OFFSET eticketHeader
+    call WriteString
+    call CrLf
+
+    ;time/date
+    INVOKE GetLocalTime, ADDR sysTime
+
+    mov edx, OFFSET receiptDateLabel
+    call WriteString
+    movzx eax, sysTime.wYear
+    call WriteDec
+    mov edx, OFFSET slashChar
+    call WriteString
+    movzx eax, sysTime.wMonth
+    call WriteDec
+    mov edx, OFFSET slashChar
+    call WriteString
+    movzx eax, sysTime.wDay
+    call WriteDec
+    call CrLf
+
+    mov edx, OFFSET receiptTimeLabel
+    call WriteString
+    movzx eax, sysTime.wHour
+    call WriteDec
+    mov edx, OFFSET colonChar
+    call WriteString
+    movzx eax, sysTime.wMinute
+    cmp eax, 10
+    jae SkipLead0Min
+    mov al, '0'
+    call WriteChar
+
+SkipLead0Min:
+    movzx eax, sysTime.wMinute
+    call WriteDec
+    call CrLf
+    call CrLf
+
+    ;user
+    mov edx, OFFSET receiptCustomerLabel
+    call WriteString
+    mov edx, OFFSET currentUser
+    call WriteString
+    call CrLf
+    call CrLf
+
+    ;movie
+    mov edx, OFFSET movieSelected
+    call WriteString
+    mov eax, currentMovie
+    call DisplayMovieName
+    call CrLf
+
+    mov edx, OFFSET showtimeSelected
+    call WriteString
+    mov eax, currentShowtime
+    call DisplayShowtimeName
+    call CrLf
+
+    mov edx, OFFSET seatTypeSelected
+    call WriteString
+    call DisplaySeatTypeName
+    call CrLf
+
+    mov edx, OFFSET seatsBooked
+    call WriteString
+    mov eax, currentSeatQty
+    call WriteDec
+    mov edx, OFFSET seatsText
+    call WriteString
+    call CrLf
+
+    ;combo
+    cmp currentCombo, 0
+    je NoComboET
+    mov edx, OFFSET comboSelectedText
+    call WriteString
+    call DisplayComboName
+    call CrLf
+
+    mov edx, OFFSET comboQtyText
+    call WriteString
+    mov eax, currentComboQty
+    call WriteDec
+    call CrLf
+NoComboET:
+
+    call CrLf
+
+    ;price
+    mov edx, OFFSET finalTotalText
+    call WriteString
+    call CalculateAndDisplayFinalTotal
+    call CrLf
+    call CrLf
+
+    ;QR
+    mov edx, OFFSET QRImage2
+    call WriteString
+    call CrLf
+
+    ;footer
+    mov edx, OFFSET eticketFooter
+    call WriteString
+    call CrLf
+
+    mov edx, OFFSET returnToPortal
+    call WriteString
+    call ReadChar
+
+    pop edi
+    pop esi
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    ret
+GenerateETicket ENDP
 
 ; Display ticket pricing with proper alignment
 DisplayTicketPricing PROC
