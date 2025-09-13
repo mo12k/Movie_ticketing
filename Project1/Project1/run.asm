@@ -183,10 +183,8 @@ seatMenuFooter BYTE "4. Back to Showtime Selection", 0dh, 0ah
 seatSelectionPrompt BYTE "Select a seat type (1-4): ",0
 
 ; Seat pricing and availability - Updated to use admin-controlled pricing
-availableSeats DWORD 50, 20, 30   ; Standard, premium, couple for 10:00 AM
-               DWORD 50, 20, 30   ; Standard, premium, couple for 1:00 PM
-               DWORD 50, 20, 30   ; Standard, premium, couple for 4:00 PM
-               DWORD 50, 20, 30   ; Standard, premium, couple for 7:00 PM
+availableSeats DWORD MAXShowtimes * 3 DUP(50)  ; Initialize all seats to 50 for each type
+
 
 ; Dynamic menu components
 movies2DHeader BYTE "============ 2D MOVIES ============", 0dh, 0ah, 0
@@ -1169,7 +1167,7 @@ AdminStatusMenu:
 
 AdminAddMovie:
 	call AddNewMovie
-	jmp AdminReturn
+	jmp AdminStatusMenu
 
 AdminUpdateMovie:
 	call UpdateMovieStatus
@@ -1254,7 +1252,7 @@ AdminPortalEnd:
 	ret
 AdminPortal ENDP
 
-; Track revenue from completed transaction
+; Track revenue from completed transaction - FIXED
 TrackRevenue PROC
     push eax
     push ebx
@@ -1262,7 +1260,7 @@ TrackRevenue PROC
     push edx
     push esi
     
-    ; Calculate ticket revenue
+    ; Calculate ticket revenue for THIS transaction only
     mov eax, currentSeatType
     dec eax  ; Convert to 0-based index
     
@@ -1279,7 +1277,8 @@ TrackTicket2D:
 GetTicketRevenue:
     mov ecx, [ebx + eax*4]  ; Price per seat in cents
     mov eax, currentSeatQty
-    mul ecx  ; Total ticket revenue in cents
+    mul ecx  ; Total ticket revenue for THIS transaction in cents
+    mov esi, eax  ; Store ticket revenue for this transaction
     
     ; Add to total ticket revenue
     add totalTicketRevenue, eax
@@ -1295,18 +1294,19 @@ GetTicketRevenue:
     jmp TrackComboRevenue
 
 TrackStandard:
-    add standardRevenue, eax
+    add standardRevenue, esi
     jmp TrackComboRevenue
 
 TrackPremium:
-    add premiumRevenue, eax
+    add premiumRevenue, esi
     jmp TrackComboRevenue
 
 TrackCouple:
-    add coupleRevenue, eax
+    add coupleRevenue, esi
 
 TrackComboRevenue:
-    ; Track combo revenue if selected
+    ; Track combo revenue if selected for THIS transaction only
+    mov edx, 0  ; Initialize combo revenue for this transaction
     cmp currentCombo, 0
     je TrackSST
     
@@ -1316,7 +1316,8 @@ TrackComboRevenue:
     mov ecx, [ebx + eax*4]  ; Price per combo in cents
     
     mov eax, currentComboQty
-    mul ecx  ; Total combo revenue in cents
+    mul ecx  ; Total combo revenue for THIS transaction in cents
+    mov edx, eax  ; Store combo revenue for this transaction
     add totalComboRevenue, eax
     
     ; Update combo counter
@@ -1324,15 +1325,11 @@ TrackComboRevenue:
     add totalCombosSold, eax
 
 TrackSST:
-    ; Calculate and track SST
-    mov eax, totalTicketRevenue
-    add eax, totalComboRevenue
-    mov esi, eax  ; Store subtotal
-    
-    ; Calculate current transaction subtotal
-    call CalculateCurrentTransactionSubtotal
-    mov ebx, SST_RATE
-    mul ebx
+    ; Calculate SST for THIS transaction only (6% of subtotal)
+    mov eax, esi  ; Ticket revenue for this transaction
+    add eax, edx  ; Add combo revenue for this transaction
+    mov ebx, SST_RATE  ; 6%
+    mul ebx  ; EAX = subtotal * 6
     mov ebx, 100
     xor edx, edx
     div ebx  ; EAX = SST for this transaction
@@ -1340,35 +1337,15 @@ TrackSST:
     add totalSSTRevenue, eax
 
 TrackMovieRevenue:
-    ; Track revenue by movie
+    ; Track revenue by movie for THIS transaction
     mov eax, currentMovie
     dec eax  ; Convert to 0-based
     cmp eax, Movie_MAXCount
     jae TrackCounters
     
     ; Add ticket revenue to specific movie
-    mov ebx, currentSeatType
-    dec ebx
-    cmp currentMovieType, 0
-    je MovieTrack2D
-    
-    mov ecx, OFFSET seatPricesIMAX
-    jmp AddMovieRevenue
-
-MovieTrack2D:
-    mov ecx, OFFSET seatPrices2D
-
-AddMovieRevenue:
-    mov edx, [ecx + ebx*4]  ; Price per seat
-    push eax
-    mov eax, currentSeatQty
-    mul edx  ; Total for this movie
-    mov edx, eax
-    pop eax
-    
-    ; Add to movie revenue array
     shl eax, 2  ; Multiply by 4 for DWORD
-    add [movieRevenue + eax], edx
+    add [movieRevenue + eax], esi  ; Add THIS transaction's ticket revenue
     
     ; Track tickets sold per movie
     mov ebx, currentSeatQty
@@ -1774,7 +1751,7 @@ DisplaySeatTypeRevenue PROC
     ret
 DisplaySeatTypeRevenue ENDP
 
-; Display revenue amount with proper decimal formatting
+; Display revenue amount with proper decimal formatting - FIXED
 DisplayRevenueAmount PROC
     push eax
     push ebx
@@ -1785,19 +1762,21 @@ DisplayRevenueAmount PROC
     xor edx, edx
     div ebx  ; EAX = whole RM, EDX = cents
     
-    push edx
+    push edx  ; Save cents remainder
     call WriteDec  ; Display whole part
     
     mov edx, OFFSET decimalPoint
     call WriteString
     
-    pop eax  ; Get cents
+    pop eax  ; Get cents remainder back
     cmp eax, 10
     jae ShowTwoCents
+    
+    ; Single digit, add leading zero
+    push eax  ; Save the value again
     mov al, '0'
     call WriteChar
-    pop eax
-    push eax
+    pop eax   ; Restore the value
 
 ShowTwoCents:
     call WriteDec
@@ -2238,6 +2217,39 @@ InitializeMovieData PROC
 	; Update pricing arrays from admin-controlled values
 	call UpdatePricingArrays
 
+	mov edi, OFFSET availableSeats
+	mov ecx, MAXShowtimes * 3
+	mov eax, 0
+	rep stosd
+
+	; Set up the first 4 showtimes with your preferred seat counts
+	; Showtime 1: 10:00 AM
+	mov DWORD PTR [availableSeats], 50      ; Standard
+	mov DWORD PTR [availableSeats + 4], 20  ; Premium  
+	mov DWORD PTR [availableSeats + 8], 30  ; Couple
+
+	; Showtime 2: 1:00 PM
+	mov DWORD PTR [availableSeats + 12], 50  ; Standard
+	mov DWORD PTR [availableSeats + 16], 20  ; Premium
+	mov DWORD PTR [availableSeats + 20], 30  ; Couple
+
+	; Showtime 3: 4:00 PM  
+	mov DWORD PTR [availableSeats + 24], 50  ; Standard
+	mov DWORD PTR [availableSeats + 28], 20  ; Premium
+	mov DWORD PTR [availableSeats + 32], 30  ; Couple
+
+	; Showtime 4: 7:00 PM
+	mov DWORD PTR [availableSeats + 36], 50  ; Standard  
+	mov DWORD PTR [availableSeats + 40], 20  ; Premium
+	mov DWORD PTR [availableSeats + 44], 30  ; Couple
+
+	; For any new showtimes added (5th, 6th, etc.), set default values
+	mov edi, OFFSET availableSeats
+	add edi, 48  ; Start after the first 4 showtimes (4 × 3 × 4 = 48 bytes)
+	mov ecx, (MAXShowtimes - 4) * 3  ; Remaining showtimes
+	mov eax, 50  ; Default seat count for new showtimes
+	rep stosd
+
 	pop edi
 	pop esi
 	pop ecx
@@ -2375,7 +2387,8 @@ AddNewMovie PROC
 	push esi
 	push edi
 
-	mov eax, MovieCount
+	; Check if we've reached maximum movies using the correct counter
+	mov eax, MovieCount  ; Use the static MovieCount that matches your other procedures
 	cmp eax, Movie_MAXCount
 	jae MovieListFull
 	
@@ -2412,6 +2425,7 @@ ConfirmMovie:
 	jmp ConfirmMovie
 
 SaveMovie:
+	; FIXED: Use consistent static movie system
 	mov eax, MovieCount 
 	mov esi, OFFSET bufferName 
 	mov edi, OFFSET MovieName 
@@ -2430,13 +2444,22 @@ SaveMovie:
 	mov ecx, Movie_DescSize
 	rep movsb
 
+	; FIXED: Set movie status using static system
+	mov eax, MovieCount
+	shl eax, 2  ; multiply by 4 for DWORD array
+	mov edi, OFFSET MovieStatus  ; Use static MovieStatus, not movieStatusDynamic
+	add edi, eax
+	mov dword ptr [edi], 1  ; Set as active
+
+	; FIXED: Also update the corresponding time count
 	mov eax, MovieCount
 	shl eax, 2
-	mov edi, OFFSET MovieStatus
+	mov edi, OFFSET TimeCount
 	add edi, eax
-	mov dword ptr [edi], 1
+	mov dword ptr [edi], 4  ; Initialize with 4 default showtimes
 
-	inc MovieCount
+	; FIXED: Increment the correct counter
+	inc MovieCount  ; Use static MovieCount
 
 	mov edx, OFFSET msg104
 	call WriteString
@@ -2457,7 +2480,6 @@ AddMovieEnd:
 	pop eax
 	ret
 AddNewMovie ENDP
-
 UpdateMovieStatus PROC
 	push eax
 	push ebx
@@ -3153,65 +3175,76 @@ DoneShowtimeList:
 	ret
 displayShowtimesList ENDP
 
-; Add showtime procedure
+; Add showtime procedure - COMPLETE IMPLEMENTATION
 AddShowtime PROC
 	pushad
 
 SelectMovieShowtime:
 	call CrLf
 
-	mov edx, OFFSET msg110
+	; Display prompt to select movie
+	mov edx, OFFSET msg110  ; "Select the movie [1 - "
 	call WriteString
 
 	mov eax, MovieCount
 	call WriteDec
 
-	mov edx, OFFSET msg111
+	mov edx, OFFSET msg111  ; "]: "
 	call WriteString
 
+	; Get movie selection from user
 	call ReadInt
-	dec eax
-	mov edi, eax
+	dec eax  ; Convert to 0-based index
+	mov edi, eax  ; Store movie index in EDI
 
+	; Validate movie selection
 	mov eax, MovieCount
 	cmp edi, 0
-	jl SelectMovieShowtime
+	jl SelectMovieShowtime  ; Invalid: less than 0
 	cmp edi, eax
-	jge SelectMovieShowtime
+	jge SelectMovieShowtime  ; Invalid: greater than or equal to MovieCount
 
 PromptTime:
-	mov edx, OFFSET msg301
+	; Get new showtime from user
+	mov edx, OFFSET msg301  ; "Enter new showtime (HH:MM): "
 	call WriteString
 	mov edx, OFFSET bufferTime
 	mov ecx, TimeSize
 	call ReadString
 
+	; Validate time format (HH:MM)
 	mov esi, OFFSET bufferTime
+	
+	; Check first digit of hour (0-2)
 	mov al, [esi]
 	cmp al, '0'
 	jb InvalidFormat
 	cmp al, '2'
 	ja InvalidFormat
 
+	; Check second digit of hour
 	mov ah, [esi + 1]
-	cmp al, '2'
+	cmp al, '2'  ; If first digit is 2
 	jne CheckColonShowtime
-	cmp ah, '0'
+	cmp ah, '0'  ; Second digit must be 0-3 when first is 2
 	jb InvalidFormat
 	cmp ah, '3'
 	ja InvalidFormat
 
 CheckColonShowtime:
+	; Check for colon separator
 	mov al, [esi + 2]
 	cmp al, ':'
 	jne InvalidFormat
 
+	; Check first digit of minutes (0-5)
 	mov al, [esi + 3]
 	cmp al, '0'
 	jb InvalidFormat
 	cmp al, '5'
 	ja InvalidFormat
 
+	; Check second digit of minutes (0-9)
 	mov al, [esi + 4]
 	cmp al, '0'
 	jb InvalidFormat
@@ -3219,7 +3252,8 @@ CheckColonShowtime:
 	ja InvalidFormat
 
 ConfirmAddShowtime:
-	mov edx, OFFSET msg103
+	; Confirm with user before adding
+	mov edx, OFFSET msg103  ; "Confirm? [Y / N]: "
 	call WriteString
 	call ReadChar
 	call WriteChar
@@ -3236,50 +3270,87 @@ ConfirmAddShowtime:
 	jmp ConfirmAddShowtime
 
 SetMovieIndexShowtime:
-	mov ebx, edi
+	mov ebx, edi  ; EBX = movie index
 	jmp SaveTimeShowtime
 
 SaveTimeShowtime:
+	; Check if movie already has maximum showtimes
 	mov eax, ebx
-	shl eax, 2
+	shl eax, 2  ; Multiply by 4 for DWORD array
 	mov edi, OFFSET TimeCount
 	add edi, eax
-	mov ecx, [edi]
+	mov ecx, [edi]  ; ECX = current number of showtimes for this movie
 
 	cmp ecx, MAXShowtimes
 	jae MaxReachedShowtime
 
+	; Calculate position in MovieShow array to store new showtime
 	mov eax, ebx
-	imul eax, (MAXShowtimes * TimeSize)
+	imul eax, (MAXShowtimes * TimeSize)  ; Movie offset
 	mov edi, OFFSET MovieShow
 	add edi, eax
 	mov eax, ecx
-	imul eax, TimeSize
+	imul eax, TimeSize  ; Showtime offset within movie
 	add edi, eax
 
+	; Copy the new showtime string
 	mov esi, OFFSET bufferTime
 	mov ecx, TimeSize
 	rep movsb
 
+	; Increment the showtime count for this movie
 	mov eax, ebx
 	shl eax, 2
 	mov edi, OFFSET TimeCount
 	add edi, eax
 	inc dword ptr [edi]
 
-	mov edx, OFFSET msg302
+	; INITIALIZE SEAT AVAILABILITY FOR NEW SHOWTIME
+	push eax
+	push ebx
+	push ecx
+	push edi
+
+	; Calculate the seat index for the new showtime
+	; Formula: (movie_index * MAXShowtimes + new_showtime_index) * 3
+	mov eax, ebx    ; Movie index
+	imul eax, MAXShowtimes
+	mov ecx, [edi]  ; Get updated time count
+	dec ecx         ; Convert to 0-based index of new showtime
+	add eax, ecx    ; Add showtime index
+	imul eax, 3     ; Multiply by 3 seat types
+
+	; Set default seat counts for the new showtime
+	mov edi, OFFSET availableSeats
+	shl eax, 2      ; Convert to byte offset (multiply by 4)
+	add edi, eax
+
+	; Initialize with default values: 50 Standard, 20 Premium, 30 Couple
+	mov DWORD PTR [edi], 50      ; Standard seats
+	mov DWORD PTR [edi + 4], 20  ; Premium seats
+	mov DWORD PTR [edi + 8], 30  ; Couple seats
+
+	pop edi
+	pop ecx
+	pop ebx
+	pop eax
+
+	; Display success message
+	mov edx, OFFSET msg302  ; "Showtime added successfully! "
 	call WriteString
 	call CrLf
 	jmp DoneAddShowtime
 
 InvalidFormat:
-	mov edx, OFFSET msg304
+	; Display error for invalid time format
+	mov edx, OFFSET msg304  ; "INVALID time format! Try again. "
 	call WriteString
 	call CrLf
 	jmp PromptTime
 
 MaxReachedShowtime:
-	mov edx, OFFSET msg303
+	; Display error when maximum showtimes reached
+	mov edx, OFFSET msg303  ; "Maximum showtimes reached!"
 	call WriteString
 	call CrLf
 	jmp DoneAddShowtime

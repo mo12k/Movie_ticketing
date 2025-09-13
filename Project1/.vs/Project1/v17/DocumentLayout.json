@@ -14,16 +14,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
@@ -32,10 +24,14 @@
               "RelativeDocumentMoniker": "Project1\\run.asm",
               "ToolTip": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\run.asm",
               "RelativeToolTip": "Project1\\run.asm",
-              "ViewState": "AgIAANoFAAAAAAAAAAD4v+YFAAAgAAAAAAAAAA==",
+              "ViewState": "AgIAABkMAAAAAAAAAAD4vyYMAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-09-13T07:17:00.862Z",
+              "WhenOpened": "2025-09-13T11:30:29.131Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
             }
           ]
         }
