@@ -1629,7 +1629,7 @@ DisplayTransactionStats PROC
     ret
 DisplayTransactionStats ENDP
 
-; Display revenue by movie - FIXED to show all movies including newly added ones
+; Display revenue by movie (UPDATED to use dynamic database)
 DisplayMovieRevenue PROC
     push eax
     push ebx
@@ -1640,20 +1640,15 @@ DisplayMovieRevenue PROC
     mov edx, OFFSET movieRevenueHeader
     call WriteString
     
-    ; FIXED: Use the actual MovieCount which includes newly added movies
-    mov ecx, MovieCount  ; This now includes newly added movies
-    mov ebx, 0  ; Movie index (0-based for revenue arrays)
-    mov esi, OFFSET MovieName
+    mov ecx, movieCountDynamic     
+    mov ebx, 0                    ; movie index
+    mov esi, OFFSET movieDatabase 
     
 MovieRevenueLoop:
     cmp ecx, 0
     je MovieRevenueEnd
     
-    ; SAFETY CHECK: Don't exceed the movie name array bounds
-    cmp ebx, Movie_MAXCount
-    jae MovieRevenueEnd
-    
-    ; Display movie name regardless of revenue/tickets
+    ; show movie name
     mov edx, esi
     call WriteString
     mov al, ':'
@@ -1665,76 +1660,31 @@ MovieRevenueLoop:
     mov al, 'M'
     call WriteChar
     
-    ; FIXED: Use the correct movie index for revenue lookup
-    ; The revenue arrays are indexed by (currentMovie - 1) during booking
-    ; So we need to map static movie index to revenue array index correctly
+    ;show movie revenue
     mov eax, ebx
-    cmp eax, Movie_MAXCount
-    jae DisplayZeroRevenue  ; Safety check for array bounds
-    
-    shl eax, 2  ; Convert to DWORD offset
-    mov edx, [movieRevenue + eax]
+    shl eax, 2
+    mov edx, [movieRevenue + eax]   ; 从 movieRevenue 数组取该电影收入
     mov eax, edx
     call DisplayRevenueAmount
     
-    ; Display tickets sold
+    ;show movie ticket sold
     mov al, ' '
     call WriteChar
     mov al, '('
     call WriteChar
     mov eax, ebx
-    cmp eax, Movie_MAXCount
-    jae DisplayZeroTickets  ; Safety check for array bounds
-    
     shl eax, 2
     mov edx, [movieTicketsSold + eax]
     mov eax, edx
     call WriteDec
-    jmp DisplayTicketsLabel
-
-DisplayZeroRevenue:
-    ; Display 0.00 for out-of-bounds movies
-    mov al, '0'
-    call WriteChar
-    mov al, '.'
-    call WriteChar
-    mov al, '0'
-    call WriteChar
-    mov al, '0'
-    call WriteChar
-    
-    mov al, ' '
-    call WriteChar
-    mov al, '('
-    call WriteChar
-
-DisplayZeroTickets:
-    ; Display 0 tickets for out-of-bounds movies
-    mov al, '0'
-    call WriteChar
-
-DisplayTicketsLabel:
-    mov al, ' '
-    call WriteChar
-    mov al, 't'
-    call WriteChar
-    mov al, 'i'
-    call WriteChar
-    mov al, 'c'
-    call WriteChar
-    mov al, 'k'
-    call WriteChar
-    mov al, 'e'
-    call WriteChar
-    mov al, 't'
-    call WriteChar
-    mov al, 's'
-    call WriteChar
+    mov edx, OFFSET seatsText    ; " seats"
+    call WriteString
     mov al, ')'
     call WriteChar
     call CrLf
-
-    add esi, Movie_NameSize
+    
+    ;next movie
+    add esi, MOVIE_NAME_SIZE
     inc ebx
     dec ecx
     jmp MovieRevenueLoop
