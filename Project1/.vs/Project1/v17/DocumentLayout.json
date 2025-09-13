@@ -7,8 +7,8 @@
       "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\run.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\new1.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\new1.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\new1.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Project1\\new1.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
   "DocumentGroupContainers": [
@@ -32,7 +32,7 @@
               "RelativeDocumentMoniker": "Project1\\run.asm",
               "ToolTip": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\run.asm",
               "RelativeToolTip": "Project1\\run.asm",
-              "ViewState": "AgIAAPcSAAAAAAAAAAAowAwTAAAWAAAAAAAAAA==",
+              "ViewState": "AgIAAOIfAAAAAAAAAAAcwA8gAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2025-09-13T11:30:29.131Z",
               "EditorCaption": ""
@@ -47,8 +47,7 @@
               "RelativeToolTip": "Project1\\new1.asm",
               "ViewState": "AgIAAPYHAAAAAAAAAAAowAIIAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-09-13T13:19:46.817Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-13T13:19:46.817Z"
             }
           ]
         }
