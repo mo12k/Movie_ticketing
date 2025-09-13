@@ -1146,7 +1146,7 @@ AdminMovieManagement:
 
 AdminStatusMenu:
 	mov edx, OFFSET menu1
-	call WriteString
+	call DisplayHeaderGreen
 
 	mov edx, OFFSET prompt2
 	call WriteString
@@ -2033,6 +2033,7 @@ DisplayAllEnd:
     pop eax
     ret
 DisplayAllMovies ENDP
+
 ; ========== ADMIN MOVIE MANAGEMENT PROCEDURES ==========
 InitializeMovieData PROC
 	push eax
@@ -2063,23 +2064,43 @@ InitializeMovieData PROC
 	mov ecx, SIZEOF initDesc1
 	rep movsb
 
-	; Initialize showtimes for Movie 1
+	; FIXED: Initialize showtimes for Movie 1 with proper string copying
 	mov edi, OFFSET MovieShow
-	mov esi, OFFSET MovieTime1
-	mov ecx, SIZEOF MovieTime1
-	rep movsb
+	
+	; Copy "10:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '0'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0  ; Null terminate
+	add edi, TimeSize
 
-	mov esi, OFFSET MovieTime2
-	mov ecx, SIZEOF MovieTime2
-	rep movsb
+	; Copy "13:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '3'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0  ; Null terminate
+	add edi, TimeSize
 
-	mov esi, OFFSET MovieTime3
-	mov ecx, SIZEOF MovieTime3
-	rep movsb
+	; Copy "16:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '6'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0  ; Null terminate
+	add edi, TimeSize
 
-	mov esi, OFFSET MovieTime4
-	mov ecx, SIZEOF MovieTime4
-	rep movsb
+	; Copy "19:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '9'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0  ; Null terminate
 
 	mov dword ptr [MovieStatus], 1
 
@@ -2104,24 +2125,44 @@ InitializeMovieData PROC
 	mov ecx, SIZEOF initDesc2
 	rep movsb
 
-	; Initialize showtimes for Movie 2
+	; FIXED: Initialize showtimes for Movie 2
 	mov edi, OFFSET MovieShow
-	add edi, MAXShowtimes * TimeSize
-	mov esi, OFFSET MovieTime1
-	mov ecx, SIZEOF MovieTime1
-	rep movsb
+	add edi, MAXShowtimes * TimeSize  ; Move to Movie 2's showtimes
+	
+	; Copy "10:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '0'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0
+	add edi, TimeSize
 
-	mov esi, OFFSET MovieTime2
-	mov ecx, SIZEOF MovieTime2
-	rep movsb
+	; Copy "13:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '3'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0
+	add edi, TimeSize
 
-	mov esi, OFFSET MovieTime3
-	mov ecx, SIZEOF MovieTime3
-	rep movsb
+	; Copy "16:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '6'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0
+	add edi, TimeSize
 
-	mov esi, OFFSET MovieTime4
-	mov ecx, SIZEOF MovieTime4
-	rep movsb
+	; Copy "19:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '9'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0
 
 	mov dword ptr [MovieStatus + 4], 1
 
@@ -2146,30 +2187,51 @@ InitializeMovieData PROC
 	mov ecx, SIZEOF initDesc3
 	rep movsb
 
-	; Initialize showtimes for Movie 3
+	; FIXED: Initialize showtimes for Movie 3
 	mov edi, OFFSET MovieShow
-	add edi, 2 * MAXShowtimes * TimeSize
-	mov esi, OFFSET MovieTime1
-	mov ecx, SIZEOF MovieTime1
-	rep movsb
+	add edi, 2 * MAXShowtimes * TimeSize  ; Move to Movie 3's showtimes
+	
+	; Copy "10:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '0'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0
+	add edi, TimeSize
 
-	mov esi, OFFSET MovieTime2
-	mov ecx, SIZEOF MovieTime2
-	rep movsb
+	; Copy "13:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '3'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0
+	add edi, TimeSize
 
-	mov esi, OFFSET MovieTime3
-	mov ecx, SIZEOF MovieTime3
-	rep movsb
+	; Copy "16:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '6'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0
+	add edi, TimeSize
 
-	mov esi, OFFSET MovieTime4
-	mov ecx, SIZEOF MovieTime4
-	rep movsb
+	; Copy "19:00" manually
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '9'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0
 
 	mov dword ptr [MovieStatus + 8], 1
 
 	; Update pricing arrays from admin-controlled values
 	call UpdatePricingArrays
 
+	; Initialize seat availability
 	mov edi, OFFSET availableSeats
 	mov ecx, MAXShowtimes * 3
 	mov eax, 0
@@ -2341,7 +2403,7 @@ AddNewMovie PROC
 	push edi
 
 	; Check if we've reached maximum movies using the correct counter
-	mov eax, MovieCount  ; Use the static MovieCount that matches your other procedures
+	mov eax, MovieCount  ; Use the static MovieCount
 	cmp eax, Movie_MAXCount
 	jae MovieListFull
 	
@@ -2378,7 +2440,7 @@ ConfirmMovie:
 	jmp ConfirmMovie
 
 SaveMovie:
-	; FIXED: Use consistent static movie system
+	; Update STATIC system (admin view)
 	mov eax, MovieCount 
 	mov esi, OFFSET bufferName 
 	mov edi, OFFSET MovieName 
@@ -2397,22 +2459,110 @@ SaveMovie:
 	mov ecx, Movie_DescSize
 	rep movsb
 
-	; FIXED: Set movie status using static system
+	; Set movie status using static system
 	mov eax, MovieCount
 	shl eax, 2  ; multiply by 4 for DWORD array
-	mov edi, OFFSET MovieStatus  ; Use static MovieStatus, not movieStatusDynamic
+	mov edi, OFFSET MovieStatus
 	add edi, eax
 	mov dword ptr [edi], 1  ; Set as active
 
-	; FIXED: Also update the corresponding time count
+	; **FIXED: Initialize showtimes for the new movie with manual copying**
+	mov eax, MovieCount
+	imul eax, MAXShowtimes * TimeSize  ; Calculate offset for this movie's showtimes
+	mov edi, OFFSET MovieShow
+	add edi, eax
+	
+	; Copy default showtimes manually (10:00, 13:00, 16:00, 19:00)
+	; Copy "10:00"
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '0'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0  ; Null terminate
+	add edi, TimeSize
+
+	; Copy "13:00"
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '3'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0  ; Null terminate
+	add edi, TimeSize
+
+	; Copy "16:00"
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '6'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0  ; Null terminate
+	add edi, TimeSize
+
+	; Copy "19:00"
+	mov BYTE PTR [edi], '1'
+	mov BYTE PTR [edi+1], '9'
+	mov BYTE PTR [edi+2], ':'
+	mov BYTE PTR [edi+3], '0'
+	mov BYTE PTR [edi+4], '0'
+	mov BYTE PTR [edi+5], 0  ; Null terminate
+
+	; Update the corresponding time count
 	mov eax, MovieCount
 	shl eax, 2
 	mov edi, OFFSET TimeCount
 	add edi, eax
 	mov dword ptr [edi], 4  ; Initialize with 4 default showtimes
 
-	; FIXED: Increment the correct counter
-	inc MovieCount  ; Use static MovieCount
+	; Initialize seat availability for the new movie's showtimes
+	mov eax, MovieCount  ; Get current movie index (0-based since we haven't incremented yet)
+	imul eax, MAXShowtimes  ; Calculate base showtime index for this movie
+	imul eax, 3             ; Multiply by 3 seat types
+	shl eax, 2              ; Convert to byte offset (multiply by 4)
+	mov edi, OFFSET availableSeats
+	add edi, eax
+
+	; Initialize 4 showtimes × 3 seat types = 12 entries
+	mov ecx, 12
+	mov ebx, 50  ; Default seat count
+InitSeatLoop:
+	mov [edi], ebx
+	add edi, 4
+	dec ecx
+	jnz InitSeatLoop
+
+	; Increment the static counter
+	inc MovieCount
+
+	; SYNC WITH DYNAMIC SYSTEM (customer view)
+	; Add to dynamic movieDatabase
+	mov eax, movieCountDynamic
+	mov ebx, MOVIE_NAME_SIZE
+	mul ebx
+	mov edi, OFFSET movieDatabase
+	add edi, eax
+	mov esi, OFFSET bufferName
+	call CopyMovieString
+	
+	; Add to dynamic movieDescriptions
+	mov eax, movieCountDynamic
+	mov ebx, MOVIE_DESC_SIZE
+	mul ebx
+	mov edi, OFFSET movieDescriptions
+	add edi, eax
+	mov esi, OFFSET bufferDesc
+	call CopyMovieString
+	
+	; Set movie as active in dynamic system
+	mov eax, movieCountDynamic
+	shl eax, 2
+	mov edi, OFFSET movieStatusDynamic
+	add edi, eax
+	mov DWORD PTR [edi], 1
+	
+	; Increment dynamic movie count
+	inc movieCountDynamic
 
 	mov edx, OFFSET msg104
 	call WriteString
@@ -2433,6 +2583,7 @@ AddMovieEnd:
 	pop eax
 	ret
 AddNewMovie ENDP
+
 UpdateMovieStatus PROC
 	push eax
 	push ebx
@@ -2599,11 +2750,19 @@ removeConfirm:
 DoRemove:
 	mov ebx, ecx
 
+	; **NEW: REMOVE FROM DYNAMIC SYSTEM FIRST**
+	; Mark as inactive in dynamic system (instead of shifting)
+	mov eax, ebx
+	shl eax, 2
+	mov edi, OFFSET movieStatusDynamic
+	add edi, eax
+	mov DWORD PTR [edi], 0  ; Mark as inactive
+
 ShiftLoop:
 	cmp ebx, MovieCount
 	jge ShiftDone
 
-	; Shift movie names
+	; Shift movie names in static system
 	mov eax, ebx
 	add eax, 1
 	mov edx, Movie_NameSize
@@ -2620,7 +2779,7 @@ ShiftLoop:
 	mov ecx, Movie_NameSize
 	rep movsb
 
-	; Shift movie descriptions
+	; Shift movie descriptions in static system
 	mov eax, ebx
 	add eax, 1
 	mov edx, Movie_DescSize
@@ -2637,7 +2796,7 @@ ShiftLoop:
 	mov ecx, Movie_DescSize
 	rep movsb
 
-	; Shift movie status
+	; Shift movie status in static system
 	mov eax, ebx
 	add eax, 1
 	shl eax, 2
@@ -2655,7 +2814,8 @@ ShiftLoop:
 	jmp ShiftLoop
 
 ShiftDone:
-	dec MovieCount
+	dec MovieCount  ; Decrement static count
+	; NOTE: We don't decrement movieCountDynamic, just mark as inactive
 
 	mov edx, OFFSET msg122
 	call WriteString
@@ -4690,7 +4850,7 @@ BookingPortalEnd:
 	ret
 BookingPortal ENDP
 
-; Dynamic 2D Movie Menu
+; Dynamic 2D Movie Menu - SAFER VERSION
 Show2DMovies PROC
     push eax
     push ebx
@@ -4703,40 +4863,47 @@ Show2DMovies PROC
 
 Movie2DLoop:
     call DisplayDynamic2DMovies
+    
+    ; SAFER input handling with error checking
     call ReadInt
-    call WriteChar
-    call CrLf
     mov userChoice, eax
+    call CrLf
 
-    ; Validate choice
-    cmp eax, 1
+    ; IMPROVED: Better bounds checking
+    cmp userChoice, 1
     jl InvalidMovie2DChoice
-    mov ebx, movieCount
-    inc ebx  ; Add 1 for back option
-    cmp eax, ebx
+
+    ; Count active movies to get the maximum valid option
+    call CountActiveMovies  ; Returns count in EAX
+    mov ebx, eax           ; Store active movie count
+    inc eax                ; Add 1 for back option
+    
+    ; Validate choice range
+    cmp userChoice, eax
     jg InvalidMovie2DChoice
     
-    ; Check if it's back option
+    ; Check if it's back option (last option)
+    mov eax, userChoice
     cmp eax, ebx
-    je BackToBooking
+    ja BackToBooking       ; If choice > active movies, it's back option
 
-    ; Valid movie choice - check if movie is active
-    dec eax  ; Convert to 0-based index
-    mov ebx, eax
-    shl ebx, 2  ; multiply by 4 for DWORD array
-    mov ecx, OFFSET movieStatus
-    add ecx, ebx
-    mov edx, [ecx]
-    cmp edx, 1
-    jne InvalidMovie2DChoice  ; Movie is inactive
+    ; SAFER: Convert display option to movie index with better validation
+    mov eax, userChoice
+    call ConvertDisplayOptionToMovieIndex
     
-    inc eax  ; Convert back to 1-based
+    ; IMPROVED: Better error checking
+    cmp eax, 0
+    jle InvalidMovie2DChoice  ; Changed from je to jle for better safety
+    cmp eax, 10               ; Check against reasonable upper bound
+    jg InvalidMovie2DChoice
+    
     mov currentMovie, eax
     call ShowShowtimes
     jmp Movie2DLoop
 
 InvalidMovie2DChoice:
-	call DisplayInvalidChoice
+    call DisplayInvalidChoice
+    call WaitMsg              ; Add a pause to see the error message
     jmp Movie2DLoop
 
 BackToBooking:
@@ -4754,7 +4921,46 @@ Show2DMovieEnd:
     ret
 Show2DMovies ENDP
 
-; Display dynamic 2D movies - FIXED to show complete range
+; Count active movies
+; Output: EAX = number of active movies
+CountActiveMovies PROC
+    push ebx
+    push ecx
+    push edx
+    
+    mov ebx, 0  ; Array index
+    mov eax, 0  ; Active count
+    mov ecx, movieCountDynamic
+    
+CountLoop:
+    cmp ebx, ecx
+    jae CountDone
+    
+    ; Check if movie is active
+    push eax
+    mov eax, ebx
+    shl eax, 2
+    mov edx, OFFSET movieStatusDynamic
+    add edx, eax
+    mov edx, [edx]
+    pop eax
+    
+    cmp edx, 1
+    jne SkipInactiveCount
+    inc eax  ; Increment active count
+    
+SkipInactiveCount:
+    inc ebx
+    jmp CountLoop
+    
+CountDone:
+    pop edx
+    pop ecx
+    pop ebx
+    ret
+CountActiveMovies ENDP
+
+; Display dynamic 2D movies - FIXED to show correct range
 DisplayDynamic2DMovies PROC
     push eax
     push ebx
@@ -4766,47 +4972,59 @@ DisplayDynamic2DMovies PROC
     mov edx, OFFSET movies2DHeader
     call DisplayHeaderGreen
     
-    ; Display each active movie
+    ; Display each active movie from DYNAMIC system
     mov ecx, movieCountDynamic  ; Use dynamic count
-    mov esi, OFFSET movieDatabase
-    mov ebx, 1  ; Option counter
+    mov esi, OFFSET movieDatabase  ; Use dynamic database
+    mov ebx, 0  ; Array index counter
+    mov eax, 1  ; Option number counter (what user sees)
     
 DisplayMovieLoop:
-    cmp ecx, 0
-    je DisplayBackOption
+    cmp ebx, ecx
+    jae DisplayBackOption
     
-    ; Check if movie is active
+    ; Check if movie is active in DYNAMIC system
+    push eax
     push ecx
-    mov eax, ebx
-    dec eax  ; Convert to 0-based
-    shl eax, 2  ; multiply by 4
-    mov edx, OFFSET movieStatusDynamic  ; Use dynamic status
-    add edx, eax
-    mov eax, [edx]
+    mov edx, ebx
+    shl edx, 2  ; multiply by 4
+    mov edi, OFFSET movieStatusDynamic  ; Use dynamic status
+    add edi, edx
+    mov edx, [edi]
     pop ecx
     
-    cmp eax, 1
+    cmp edx, 1
     jne SkipInactiveMovie
     
-    ; Display movie option
-    mov eax, ebx
-    call WriteDec
+    ; Display movie option with sequential numbering
+    call WriteDec  ; Display the option number (EAX)
     mov edx, OFFSET movieOptionSuffix
     call WriteString
-    mov edx, esi
+    
+    ; Calculate movie name position
+    push eax
+    mov eax, ebx
+    mov edx, MOVIE_NAME_SIZE
+    mul edx
+    mov edi, OFFSET movieDatabase
+    add edi, eax
+    mov edx, edi
     call WriteString
     call CrLf
+    pop eax
+    
+    inc eax  ; Increment option number for next active movie
     
 SkipInactiveMovie:
-    add esi, MOVIE_NAME_SIZE
-    inc ebx
-    dec ecx
-    jmp DisplayMovieLoop
+    inc ebx  ; Always increment array index
+    cmp ebx, ecx
+    jl DisplayMovieLoop
     
 DisplayBackOption:
-    ; FIXED: Display complete range
-    mov eax, ebx
-    call WriteDec
+    ; Store the final option count before displaying back option
+    push eax  ; Save the final option number
+    
+    ; Display back option with correct numbering
+    call WriteDec  ; EAX now contains the next option number
     mov edx, OFFSET movieOptionSuffix
     call WriteString
     mov al, 'B'
@@ -4855,7 +5073,7 @@ DisplayBackOption:
     call WriteChar
     call CrLf
     
-    ; FIXED: Display complete footer with range
+    ; Display complete footer with range
     mov al, '='
     mov ecx, 35
 PrintEquals2D:
@@ -4899,11 +5117,14 @@ PrintEquals2D:
     call WriteChar
     mov al, '-'
     call WriteChar
-    mov eax, ebx  ; Show the maximum option
-    call WriteDec
+    
+    ; FIXED: Use the stored final option number
+    pop eax  ; Restore the final option number
+    call WriteDec  ; Show the maximum option (EAX)
+    
     mov al, ')'
     call WriteChar
-    mov al, ':'  ; FIXED: Complete the incomplete mov instruction
+    mov al, ':'
     call WriteChar
     mov al, ' '
     call WriteChar
@@ -4916,7 +5137,7 @@ PrintEquals2D:
     ret
 DisplayDynamic2DMovies ENDP
 
-; Similar procedure for IMAX movies
+; Similar procedure for IMAX movies - FIXED to prevent crashes
 ShowIMAXMovies PROC
     push eax
     push ebx
@@ -4929,39 +5150,57 @@ ShowIMAXMovies PROC
 
 MovieIMAXLoop:
     call DisplayDynamicIMAXMovies
+    
+    ; FIXED: Use safer input handling
+    push eax
+    push ebx
+    push ecx
+    push edx
+    
+    ; Read input more safely
     call ReadInt
-    call WriteChar
-    call CrLf
     mov userChoice, eax
     
-    ; Validate choice (same logic as 2D movies)
-    cmp eax, 1
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    
+    call WriteChar
+    call CrLf
+
+    ; FIXED: Add bounds checking before validation
+    cmp userChoice, 0
+    jle InvalidMovieIMAXChoice
+
+    ; Count active movies to get the maximum valid option
+    call CountActiveMovies  ; Returns count in EAX
+    inc eax  ; Add 1 for back option
+    
+    ; Validate choice range with better error handling
+    cmp userChoice, 1
     jl InvalidMovieIMAXChoice
-    mov ebx, movieCount
-    inc ebx
-    cmp eax, ebx
+    cmp userChoice, eax
     jg InvalidMovieIMAXChoice
     
-    cmp eax, ebx
+    ; Check if it's back option
+    cmp userChoice, eax
     je BackToBookingIMAX
 
-    ; Valid movie choice
-    dec eax
-    mov ebx, eax
-    shl ebx, 2
-    mov ecx, OFFSET movieStatus
-    add ecx, ebx
-    mov edx, [ecx]
-    cmp edx, 1
-    jne InvalidMovieIMAXChoice
+    ; Convert display option to movie index with error checking
+    mov eax, userChoice
+    call ConvertDisplayOptionToMovieIndex
+    cmp eax, -1
+    je InvalidMovieIMAXChoice
+    cmp eax, 0
+    je InvalidMovieIMAXChoice
     
-    inc eax
     mov currentMovie, eax
     call ShowShowtimes
     jmp MovieIMAXLoop
 
 InvalidMovieIMAXChoice:
-	call DisplayInvalidChoice
+    call DisplayInvalidChoice
     jmp MovieIMAXLoop
 
 BackToBookingIMAX:
@@ -4979,7 +5218,7 @@ ShowIMAXMovieEnd:
     ret
 ShowIMAXMovies ENDP
 
-; Display dynamic IMAX movies - FIXED to show complete range
+; Display dynamic IMAX movies - FIXED to show correct range
 DisplayDynamicIMAXMovies PROC
     push eax
     push ebx
@@ -4991,34 +5230,42 @@ DisplayDynamicIMAXMovies PROC
     mov edx, OFFSET moviesIMAXHeader
     call DisplayHeaderGreen
     
-    ; Display each active movie
+    ; Display each active movie from DYNAMIC system
     mov ecx, movieCountDynamic  ; Use dynamic count
-    mov esi, OFFSET movieDatabase
-    mov ebx, 1  ; Option counter
+    mov esi, OFFSET movieDatabase  ; Use dynamic database
+    mov ebx, 0  ; Array index counter
+    mov eax, 1  ; Option number counter (what user sees)
     
 DisplayIMAXMovieLoop:
-    cmp ecx, 0
-    je DisplayIMAXBackOption
+    cmp ebx, ecx
+    jae DisplayIMAXBackOption
     
-    ; Check if movie is active
+    ; Check if movie is active in DYNAMIC system
+    push eax
     push ecx
-    mov eax, ebx
-    dec eax  ; Convert to 0-based
-    shl eax, 2  ; multiply by 4
-    mov edx, OFFSET movieStatusDynamic
-    add edx, eax
-    mov eax, [edx]
+    mov edx, ebx
+    shl edx, 2  ; multiply by 4
+    mov edi, OFFSET movieStatusDynamic  ; Use dynamic status
+    add edi, edx
+    mov edx, [edi]
     pop ecx
     
-    cmp eax, 1
+    cmp edx, 1
     jne SkipInactiveIMAXMovie
     
-    ; Display movie option
-    mov eax, ebx
-    call WriteDec
+    ; Display movie option with sequential numbering
+    call WriteDec  ; Display the option number (EAX)
     mov edx, OFFSET movieOptionSuffix
     call WriteString
-    mov edx, esi
+    
+    ; Calculate movie name position
+    push eax
+    mov eax, ebx
+    mov edx, MOVIE_NAME_SIZE
+    mul edx
+    mov edi, OFFSET movieDatabase
+    add edi, eax
+    mov edx, edi
     call WriteString
     mov al, ' '
     call WriteChar
@@ -5031,17 +5278,21 @@ DisplayIMAXMovieLoop:
     mov al, 'X'
     call WriteChar
     call CrLf
+    pop eax
+    
+    inc eax  ; Increment option number for next active movie
     
 SkipInactiveIMAXMovie:
-    add esi, MOVIE_NAME_SIZE
-    inc ebx
-    dec ecx
-    jmp DisplayIMAXMovieLoop
+    inc ebx  ; Always increment array index
+    cmp ebx, ecx
+    jl DisplayIMAXMovieLoop
     
 DisplayIMAXBackOption:
-    ; FIXED: Display complete range
-    mov eax, ebx
-    call WriteDec
+    ; Store the final option count before displaying back option
+    push eax  ; Save the final option number
+    
+    ; Display back option with correct numbering
+    call WriteDec  ; EAX now contains the next option number
     mov edx, OFFSET movieOptionSuffix
     call WriteString
     mov al, 'B'
@@ -5090,7 +5341,7 @@ DisplayIMAXBackOption:
     call WriteChar
     call CrLf
     
-    ; FIXED: Display complete footer with range
+    ; Display complete footer with range
     mov al, '='
     mov ecx, 35
 PrintEqualsIMAX:
@@ -5134,8 +5385,11 @@ PrintEqualsIMAX:
     call WriteChar
     mov al, '-'
     call WriteChar
-    mov eax, ebx  ; Show the maximum option
-    call WriteDec
+    
+    ; FIXED: Use the stored final option number
+    pop eax  ; Restore the final option number
+    call WriteDec  ; Show the maximum option (EAX)
+    
     mov al, ')'
     call WriteChar
     mov al, ':'
@@ -5150,6 +5404,75 @@ PrintEqualsIMAX:
     pop eax
     ret
 DisplayDynamicIMAXMovies ENDP
+
+; SAFER: Convert display option to actual movie index
+; Input: EAX = user's choice (1-based display option)
+; Output: EAX = actual movie index in static system, or 0 if invalid
+ConvertDisplayOptionToMovieIndex PROC
+    push ebx
+    push ecx
+    push edx
+    
+    ; Safety check: ensure input is positive and reasonable
+    cmp eax, 1
+    jl InvalidOptionSafe
+    cmp eax, 20    ; Reasonable upper bound
+    jg InvalidOptionSafe
+    
+    mov ebx, eax  ; Save user choice
+    mov eax, 0    ; Array index counter
+    mov ecx, 1    ; Display option counter
+    
+ConvertLoopSafe:
+    ; Safety check: don't exceed array bounds
+    cmp eax, movieCountDynamic
+    jae InvalidOptionSafe
+    
+    ; Additional safety check for maximum movies
+    cmp eax, MAX_MOVIES
+    jae InvalidOptionSafe
+    
+    ; Check if this movie is active (with bounds checking)
+    push eax
+    mov edx, eax
+    cmp edx, MAX_MOVIES
+    jae PopAndInvalidSafe
+    
+    shl edx, 2
+    mov edi, OFFSET movieStatusDynamic
+    add edi, edx
+    mov edx, [edi]
+    pop eax
+    
+    cmp edx, 1
+    jne SkipInactiveForConvertSafe
+    
+    ; This is an active movie, check if it matches user's choice
+    cmp ecx, ebx
+    je FoundMatchSafe
+    inc ecx  ; Increment display option counter
+    
+SkipInactiveForConvertSafe:
+    inc eax  ; Always increment array index
+    jmp ConvertLoopSafe
+
+PopAndInvalidSafe:
+    pop eax  ; Clean up stack
+    jmp InvalidOptionSafe
+    
+FoundMatchSafe:
+    inc eax  ; Convert to 1-based index for compatibility
+    jmp ConvertEndSafe
+    
+InvalidOptionSafe:
+    mov eax, 0   ; Return 0 instead of -1 for safer handling
+    
+ConvertEndSafe:
+    pop edx
+    pop ecx
+    pop ebx
+    ret
+ConvertDisplayOptionToMovieIndex ENDP
 
 ;Show showtimes for selected movie - UPDATED for dynamic display
 ShowShowtimes PROC
@@ -5206,11 +5529,11 @@ ShowShowtimesEnd:
     ret
 ShowShowtimes ENDP
 
-; Dynamic showtime display procedure - FIXED to show complete range
+; Dynamic showtime display procedure - FIXED to handle new movies correctly
 DisplayDynamicShowtimes PROC
     pushad
     
-    ; Get current movie index (1-based to 0-based)
+    ; Get current movie index (1-based to 0-based for STATIC system)
     mov eax, currentMovie
     dec eax
     mov ebx, eax
@@ -5219,14 +5542,14 @@ DisplayDynamicShowtimes PROC
     mov edx, OFFSET showtimeMenuHeader
     call DisplayHeaderGreen
     
-    ; Get number of showtimes for this movie
+    ; **IMPORTANT: Use STATIC TimeCount since showtimes are stored in static system**
     mov eax, ebx
     shl eax, 2  ; multiply by 4 for DWORD array
     mov esi, OFFSET TimeCount
     add esi, eax
-    mov ecx, [esi]  ; ECX = number of showtimes for this movie
+    mov ecx, [esi]  ; ECX = number of showtimes for this movie from STATIC system
     
-    ; Calculate starting position in MovieShow array
+    ; Calculate starting position in MovieShow array (STATIC system)
     mov eax, ebx
     imul eax, MAXShowtimes * TimeSize
     mov edi, OFFSET MovieShow
@@ -5245,10 +5568,26 @@ DisplayShowtimeLoop:
     mov edx, OFFSET showtimeOptionSuffix
     call WriteString
     
+    ; Check if showtime is not empty before displaying
+    push ecx
+    push edi
+    mov al, [edi]  ; Check first character of showtime
+    cmp al, 0      ; If it's null, skip this showtime
+    je SkipEmptyShowtime
+    
     ; Display showtime
     mov edx, edi
     call WriteString
     call CrLf
+    jmp NextShowtime
+
+SkipEmptyShowtime:
+    ; Don't display empty showtimes, but still count them
+    call CrLf
+
+NextShowtime:
+    pop edi
+    pop ecx
     
     ; Move to next showtime
     add edi, TimeSize
@@ -5310,7 +5649,7 @@ DisplayBackOption:
     call WriteChar
     call CrLf
     
-    ; FIXED: Display complete footer with range
+    ; Display complete footer with range
     mov al, '='
     mov ecx, 35
 PrintEqualsShowtime:
