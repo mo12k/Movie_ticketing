@@ -1142,7 +1142,7 @@ dashboardLoop:
 
 AdminMovieManagement:
 	call displayMovieList
-	jmp AdminReturn
+	jmp AdminStatusMenu
 
 AdminStatusMenu:
 	mov edx, OFFSET menu1
