@@ -31,7 +31,7 @@ mainMenuMsg BYTE 0dh, 0ah, "MAIN MENU:", 0dh, 0ah
 ; ========== AUTHENTICATION SYSTEM ==========
 ; Admin default credentials
 adminUsername BYTE "admin", 0
-adminPassword BYTE "@96iT2", 0
+adminPassword BYTE "123", 0
 
 ; Login interface messages
 adminLoginHeader BYTE 0dh, 0ah, "=== ADMIN LOGIN ===", 0dh, 0ah, 0
@@ -398,7 +398,8 @@ prompt1 BYTE "Select your operation [1 - 5]: ", 0
 prompt2 BYTE "Select your operation [1 - 4]: ", 0
 prompt3 BYTE "Select your operation [1 - 2]: ", 0
 prompt4 BYTE "Select your choice [1 - 4]: ", 0
-promptX BYTE "Do you wish to continue? [7 = yes, 0 = no]: ", 0
+prompt5 BYTE "Select your operation [1 - 3]: ", 0
+promptX BYTE "Do you wish to continue? [1 = yes, 0 = no]: ", 0
 
 msg0 BYTE "INVALID operation! Try again.", 0
 
@@ -1215,7 +1216,7 @@ AdminReturn:
 	call WriteChar
 	call CrLf
 
-	cmp al, '7'
+	cmp al, '1'
 	je AdminBackDashboard
 	cmp al, '0'
 	je AdminQuit
@@ -1459,7 +1460,7 @@ ReportMenuLoop:
     mov edx, OFFSET reportMenu
     call DisplayHeaderGreen
     
-    mov edx, OFFSET prompt2
+    mov edx, OFFSET prompt5
     call WriteString
     call ReadChar
     call WriteChar
@@ -6060,7 +6061,7 @@ PaywithRewardPoints:
     call CalculateFinalTotalInCents   ; EAX = total (cents)
     mov finalTotalCents, eax          ; Store total (cents)
 
-    ; Calculate required points = total (cents) ÷ 10
+    ; Calculate required points = total (cents) Ã· 10
     mov eax, finalTotalCents
     mov ebx, 10
     xor edx, edx
