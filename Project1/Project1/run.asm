@@ -1142,7 +1142,7 @@ dashboardLoop:
 
 AdminMovieManagement:
 	call displayMovieList
-	jmp AdminStatusMenu
+	jmp AdminReturn
 
 AdminStatusMenu:
 	mov edx, OFFSET menu1
@@ -1844,54 +1844,7 @@ ResetEnd:
     ret
 ResetAllRevenueData ENDP
 
-; Admin movie management portal
-AdminMovieManagement PROC
-    push eax
-    push edx
-    
-AdminMovieLoop:
-    call Clrscr
-    mov edx, OFFSET adminMovieHeader
-    call DisplayHeaderGreen
-    call ReadChar
-    call WriteChar
-    call CrLf
-    
-    cmp al, '1'
-    je AddNewMovie
-    cmp al, '2'
-    je RemoveMovie
-    cmp al, '3'
-    je ViewAllMovies
-    cmp al, '4'
-    je BackToAdminPortal
-    
-	call DisplayInvalidChoice
-    jmp AdminMovieLoop
-
-AddNewMovie:
-    call AddMovieToDatabase
-    jmp AdminMovieLoop
-
-RemoveMovie:
-    call RemoveMovieFromDatabase
-    jmp AdminMovieLoop
-
-ViewAllMovies:
-    call DisplayAllMovies
-    jmp AdminMovieLoop
-
-BackToAdminPortal:
-    jmp AdminMovieEnd
-
-AdminMovieEnd:
-    pop edx
-    pop eax
-    ret
-AdminMovieManagement ENDP
-
 ; Add movie to database
-; Add movie to database - UPDATED to use dynamic arrays
 AddMovieToDatabase PROC
     push eax
     push ebx
