@@ -1330,6 +1330,7 @@ TrackMovieRevenue:
     ; Track revenue by movie for THIS transaction
     mov eax, currentMovie
     dec eax  ; Convert to 0-based
+    ; FIXED: Allow tracking all movies within the allocated array bounds
     cmp eax, Movie_MAXCount
     jae TrackCounters
     
@@ -1628,7 +1629,7 @@ DisplayTransactionStats PROC
     ret
 DisplayTransactionStats ENDP
 
-; Display revenue by movie
+; Display revenue by movie - FIXED to show all movies including newly added ones
 DisplayMovieRevenue PROC
     push eax
     push ebx
@@ -1639,15 +1640,20 @@ DisplayMovieRevenue PROC
     mov edx, OFFSET movieRevenueHeader
     call WriteString
     
-    mov ecx, MovieCount
-    mov ebx, 0  ; Movie index
+    ; FIXED: Use the actual MovieCount which includes newly added movies
+    mov ecx, MovieCount  ; This now includes newly added movies
+    mov ebx, 0  ; Movie index (0-based for revenue arrays)
     mov esi, OFFSET MovieName
     
 MovieRevenueLoop:
     cmp ecx, 0
     je MovieRevenueEnd
     
-    ; Display movie name
+    ; SAFETY CHECK: Don't exceed the movie name array bounds
+    cmp ebx, Movie_MAXCount
+    jae MovieRevenueEnd
+    
+    ; Display movie name regardless of revenue/tickets
     mov edx, esi
     call WriteString
     mov al, ':'
@@ -1659,9 +1665,14 @@ MovieRevenueLoop:
     mov al, 'M'
     call WriteChar
     
-    ; Display revenue for this movie
+    ; FIXED: Use the correct movie index for revenue lookup
+    ; The revenue arrays are indexed by (currentMovie - 1) during booking
+    ; So we need to map static movie index to revenue array index correctly
     mov eax, ebx
-    shl eax, 2
+    cmp eax, Movie_MAXCount
+    jae DisplayZeroRevenue  ; Safety check for array bounds
+    
+    shl eax, 2  ; Convert to DWORD offset
     mov edx, [movieRevenue + eax]
     mov eax, edx
     call DisplayRevenueAmount
@@ -1672,10 +1683,37 @@ MovieRevenueLoop:
     mov al, '('
     call WriteChar
     mov eax, ebx
+    cmp eax, Movie_MAXCount
+    jae DisplayZeroTickets  ; Safety check for array bounds
+    
     shl eax, 2
     mov edx, [movieTicketsSold + eax]
     mov eax, edx
     call WriteDec
+    jmp DisplayTicketsLabel
+
+DisplayZeroRevenue:
+    ; Display 0.00 for out-of-bounds movies
+    mov al, '0'
+    call WriteChar
+    mov al, '.'
+    call WriteChar
+    mov al, '0'
+    call WriteChar
+    mov al, '0'
+    call WriteChar
+    
+    mov al, ' '
+    call WriteChar
+    mov al, '('
+    call WriteChar
+
+DisplayZeroTickets:
+    ; Display 0 tickets for out-of-bounds movies
+    mov al, '0'
+    call WriteChar
+
+DisplayTicketsLabel:
     mov al, ' '
     call WriteChar
     mov al, 't'
@@ -1695,7 +1733,7 @@ MovieRevenueLoop:
     mov al, ')'
     call WriteChar
     call CrLf
-    
+
     add esi, Movie_NameSize
     inc ebx
     dec ecx
@@ -2341,6 +2379,7 @@ pressEnter:
 	ret
 displayMovieList ENDP
 
+; FIXED: AddNewMovie procedure with proper string copying
 AddNewMovie PROC
 	push eax
 	push ebx
@@ -2387,24 +2426,41 @@ ConfirmMovie:
 	jmp ConfirmMovie
 
 SaveMovie:
-	; Update STATIC system (admin view)
+	; FIXED: Update STATIC system (admin view) with proper string copying
 	mov eax, MovieCount 
-	mov esi, OFFSET bufferName 
+	mov ebx, Movie_NameSize 
+	mul ebx  ; EAX = offset for this movie's name
 	mov edi, OFFSET MovieName 
-	mov ecx, Movie_NameSize 
-	mul ecx 
-	add edi, eax 
-	mov ecx, Movie_NameSize 
-	rep movsb
+	add edi, eax  ; EDI points to destination
+	
+	; Clear the destination buffer first
+	push edi
+	mov ecx, Movie_NameSize
+	xor eax, eax
+	rep stosb
+	pop edi
+	
+	; Copy the movie name properly
+	mov esi, OFFSET bufferName
+	call CopyMovieNameToStatic
 
+	; Do the same for description
 	mov eax, MovieCount
-	mov esi, OFFSET bufferDesc
+	mov ebx, Movie_DescSize
+	mul ebx
 	mov edi, OFFSET MovieDesc
-	mov ecx, Movie_DescSize
-	mul ecx
 	add edi, eax
+	
+	; Clear the destination buffer first
+	push edi
 	mov ecx, Movie_DescSize
-	rep movsb
+	xor eax, eax
+	rep stosb
+	pop edi
+	
+	; Copy the movie description properly
+	mov esi, OFFSET bufferDesc
+	call CopyMovieDescToStatic
 
 	; Set movie status using static system
 	mov eax, MovieCount
@@ -2413,7 +2469,7 @@ SaveMovie:
 	add edi, eax
 	mov dword ptr [edi], 1  ; Set as active
 
-	; **FIXED: Initialize showtimes for the new movie with manual copying**
+	; **Initialize showtimes for the new movie with manual copying**
 	mov eax, MovieCount
 	imul eax, MAXShowtimes * TimeSize  ; Calculate offset for this movie's showtimes
 	mov edi, OFFSET MovieShow
@@ -2531,6 +2587,55 @@ AddMovieEnd:
 	ret
 AddNewMovie ENDP
 
+; Helper procedure to copy movie name to static system
+CopyMovieNameToStatic PROC
+    push eax
+    push ecx
+    
+    mov ecx, 0  ; Character counter
+CopyNameLoop:
+    mov al, [esi]
+    cmp al, 0
+    je CopyNameDone
+    cmp ecx, Movie_NameSize - 1  ; Leave space for null terminator
+    jae CopyNameDone
+    mov [edi], al
+    inc esi
+    inc edi
+    inc ecx
+    jmp CopyNameLoop
+    
+CopyNameDone:
+    mov BYTE PTR [edi], 0  ; Ensure null termination
+    pop ecx
+    pop eax
+    ret
+CopyMovieNameToStatic ENDP
+
+; Helper procedure to copy movie description to static system
+CopyMovieDescToStatic PROC
+    push eax
+    push ecx
+    
+    mov ecx, 0  ; Character counter
+CopyDescLoop:
+    mov al, [esi]
+    cmp al, 0
+    je CopyDescDone
+    cmp ecx, Movie_DescSize - 1  ; Leave space for null terminator
+    jae CopyDescDone
+    mov [edi], al
+    inc esi
+    inc edi
+    inc ecx
+    jmp CopyDescLoop
+    
+CopyDescDone:
+    mov BYTE PTR [edi], 0  ; Ensure null termination
+    pop ecx
+    pop eax
+    ret
+CopyMovieDescToStatic ENDP
 UpdateMovieStatus PROC
 	push eax
 	push ebx
@@ -7285,66 +7390,53 @@ DisplaySeconds:
 	ret
 DisplayReceiptDateTime ENDP
 
+; Display movie name - FIXED to use dynamic movie names from MovieName database
 DisplayMovieName PROC
-	push eax
-	push edx
-	
-	; Display movie type first
-	cmp currentMovieType, 0
-	je Display2DMovie
-	
-	; IMAX movie
-	mov edx, OFFSET movie1_IMAX
-	mov eax, currentMovie
-	cmp eax, 1
-	je DisplaySelectedMovie
-	
-	mov edx, OFFSET movie2_IMAX
-	cmp eax, 2
-	je DisplaySelectedMovie
-	
-	mov edx, OFFSET movie3_IMAX
-	cmp eax, 3
-	je DisplaySelectedMovie
-	jmp DisplayMovieEnd
-
-Display2DMovie:
-	; 2D movie
-	mov edx, OFFSET movie1_2D
-	mov eax, currentMovie
-	cmp eax, 1
-	je DisplaySelectedMovie
-	
-	mov edx, OFFSET movie2_2D
-	cmp eax, 2
-	je DisplaySelectedMovie
-	
-	mov edx, OFFSET movie3_2D
-	cmp eax, 3
-	je DisplaySelectedMovie
-	jmp DisplayMovieEnd
-
-DisplaySelectedMovie:
-	call WriteString
-	mov al, ' '
-	call WriteChar
-	mov al, '('
-	call WriteChar
-	cmp currentMovieType, 0
-	je Display2DLabel
-	mov edx, OFFSET movieTypeIMAX
-	jmp DisplayLabel
+    push eax
+    push ebx
+    push edx
+    push esi
+    
+    ; Get the movie name from MovieName database
+    mov eax, currentMovie
+    dec eax  ; Convert to 0-based index
+    
+    ; Calculate offset in MovieName array
+    mov ebx, Movie_NameSize
+    mul ebx  ; EAX = movie_index * Movie_NameSize
+    
+    ; Get pointer to movie name
+    mov esi, OFFSET MovieName
+    add esi, eax
+    
+    ; Display the movie name
+    mov edx, esi
+    call WriteString
+    
+    ; Add space and movie type in parentheses
+    mov al, ' '
+    call WriteChar
+    mov al, '('
+    call WriteChar
+    
+    ; Display movie type
+    cmp currentMovieType, 0
+    je Display2DLabel
+    mov edx, OFFSET movieTypeIMAX
+    jmp DisplayLabel
 Display2DLabel:
-	mov edx, OFFSET movieType2D
+    mov edx, OFFSET movieType2D
 DisplayLabel:
-	call WriteString
-	mov al, ')'
-	call WriteChar
+    call WriteString
+    mov al, ')'
+    call WriteChar
 
 DisplayMovieEnd:
-	pop edx
-	pop eax
-	ret
+    pop esi
+    pop edx
+    pop ebx
+    pop eax
+    ret
 DisplayMovieName ENDP
 
 ; Display showtime name based on currentShowtime - UPDATED for dynamic
