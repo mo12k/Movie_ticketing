@@ -306,7 +306,8 @@ paymentHeader	BYTE 0dh, 0ah, "==================================================
 				BYTE "1. Pay with Credit/Debit Card", 0dh, 0ah
 				BYTE "2. Pay with E-Wallet", 0dh, 0ah
 				BYTE "3. Pay with Online Banking", 0dh, 0ah
-				BYTE "4. Cancel Payment and Return to User Portal", 0dh, 0ah
+				BYTE "4. Pay with Reward Point", 0dh, 0ah
+				BYTE "5. Cancel Payment and Return to User Portal", 0dh, 0ah
 				BYTE "Please select a payment method (1-4): ", 0
 
 	paymentSuccess BYTE 0dh, 0ah, "Payment successful! Thank you for your purchase.", 0dh, 0ah, 0
@@ -402,6 +403,34 @@ paymentHeader	BYTE 0dh, 0ah, "==================================================
 	rewardPointsBalance BYTE "Your new reward points balance: ", 0
 	pointsEarnedMsg BYTE 0dh, 0ah, "=== REWARD POINTS EARNED ===", 0dh, 0ah, 0
 
+	availableMsg         BYTE "Your Reward Points: ",0
+	requiredMsg          BYTE "Required Points: ",0
+	successMsg           BYTE "Payment successful! Points deducted.",0
+	notEnoughPointsMsg   BYTE "Not enough reward points for this purchase!",0
+	pressAnyKeyMsg       BYTE "Press any key to continue...",0
+	finalTotalRM		 DWORD ?
+	finalTotalCents		 DWORD ?
+	;debugIndexMsg		BYTE "Index: ",0
+	;debugCompareMsg		BYTE " Required: ",0
+	;debugCompareMsg2	BYTE " Required: ",0
+
+	;e-Ticket 
+	eticketHeader	 BYTE "===============================================", 0dh, 0ah
+				     BYTE "===== E - T I C K E T =====", 0dh, 0ah
+					 BYTE "===============================================", 0dh, 0ah, 0
+	
+	eticketFooter    BYTE "Thank you for your purchase. Enjoy your movie!",0
+
+
+	; ASCII
+	QRImage2 BYTE " [==== QR / BARCODE ====]",0dh, 0ah
+		    BYTE " |  ? ?   ? ?   ? ?   |",0dh, 0ah
+		    BYTE " |  ?   ?   ?   ?   ? |",0dh, 0ah
+		    BYTE " |  ? ?   ? ?   ? ?   |",0dh, 0ah
+		    BYTE " |        SCAN        |",0dh, 0ah
+		    BYTE " ======================",0
+		    
+	
 .code
 main PROC
 	; Initialize userData with predefined users
@@ -536,13 +565,79 @@ NoRMComboPrice:
 	mov ebx, 100
 	mov edx, 0
 	div ebx  ; EAX = whole RM amount (reward points to award)
-	
+
 	pop esi
 	pop edx
 	pop ecx
 	pop ebx
 	ret
 CalculateFinalTotalInRM ENDP
+
+; ==========================================================
+; Calculate final total in cents (no truncation)
+; ==========================================================
+CalculateFinalTotalInCents PROC
+    push ebx
+    push ecx
+    push edx
+    push esi
+
+    ; ---------- Ticket price ----------
+    mov eax, currentSeatType
+    dec eax                      ; Convert to 0-based index
+
+    cmp currentMovieType, 0
+    je Use2DPrices
+
+    ; IMAX price table
+    mov ebx, OFFSET seatPricesIMAX
+    jmp GetSeatPrice
+
+Use2DPrices:
+    mov ebx, OFFSET seatPrices2D
+
+GetSeatPrice:
+    mov ecx, [ebx + eax*4]       ; Seat unit price (RM)
+    mov eax, currentSeatQty
+    mul ecx                      ; eax = seatQty * unit price (RM)
+
+    ; Convert to cents
+    mov ebx, 100
+    mul ebx                      ; eax = subtotal in cents
+    mov esi, eax                 ; esi = ticket subtotal (cents)
+
+    ; ---------- Combo ----------
+    cmp currentCombo, 0
+    je SkipCombo
+
+    mov eax, currentCombo
+    dec eax
+    mov ebx, OFFSET comboPrices
+    mov ecx, [ebx + eax*4]       ; Single combo price (cents)
+
+    mov eax, currentComboQty
+    mul ecx                      ; eax = combo total (cents)
+    add esi, eax
+
+SkipCombo:
+    ; ---------- SST (6%) ----------
+    mov eax, esi
+    mov ebx, SST_RATE            ; 6
+    mul ebx                      ; eax = subtotal * 6
+    mov ebx, 100
+    xor edx, edx
+    div ebx                      ; eax = SST (cents)
+
+    add esi, eax                 ; Add SST
+
+    mov eax, esi                 ; return final total in cents
+
+    pop esi
+    pop edx
+    pop ecx
+    pop ebx
+    ret
+CalculateFinalTotalInCents ENDP
 
 MainMenu PROC
 	call Clrscr
@@ -2170,6 +2265,27 @@ ValidSeatChoice:
 	;Check if enough seats are available
 	call CheckSeatAvailability
 	mov ebx, currentSeatQty
+
+	;testing, display the currect seat availability
+	;push eax
+	;push ebx
+	;push edx
+	;mov edx, OFFSET debugCompareMsg  ; BYTE "Available: ",0
+	;call WriteString
+	;pop edx
+	;pop ebx
+	;push ebx
+	;mov eax, ebx
+	;call WriteDec
+	;mov edx, OFFSET debugCompareMsg2 ; BYTE " Required: ",0
+	;call WriteString
+	;pop ebx
+	;pop eax
+	;push eax
+	;call WriteDec
+	;call CrLf
+	;pop eax
+
 	cmp eax, ebx  ; Compare available seats with requested quantity
 	jl NotEnoughSeats  ; Fixed: renamed label to avoid conflict
 	
@@ -2301,7 +2417,9 @@ DisplayAvailableSeats ENDP
 
 ; Check if selected seat type has availability
 CheckSeatAvailability PROC
-    pushad
+    push ebx
+    push ecx
+    push edx
     
     ; Calculate seat index
     mov eax, currentShowtime
@@ -2311,13 +2429,24 @@ CheckSeatAvailability PROC
     add eax, currentSeatType
     dec eax                     ; Add seat type offset (0-based)
     
-    ; Check availability
+	; testing
+	;push eax
+	;push edx
+	;mov edx, OFFSET debugIndexMsg  ; 
+	;call WriteString
+	;mov edx, eax
+	;call WriteDec
+	;call CrLf
+	;pop edx
+	;pop eax
+
+     ;Check availability
     mov ebx, OFFSET availableSeats
-    mov ecx, [ebx + eax*4]
-    
-    popad
-    mov eax, ecx                ; Return seat count in eax
-    ret
+    mov eax, [ebx + eax*4]      ; store EAX
+    pop edx
+    pop ecx
+    pop ebx
+    ret                         ;
 CheckSeatAvailability ENDP
 
 
@@ -2622,59 +2751,82 @@ DisplaySSTTwoDigits:
 	ret
 CalculateAndDisplaySST ENDP
 
+;Checkout and payment method selection
 CheckoutPayment PROC
-	push eax
-	push ebx
-	push ecx
-	push edx
-	push esi
-	push edi
-	call Clrscr
+    push eax
+    push ebx
+    push ecx
+    push edx
+    push esi
+    push edi
+    call Clrscr
 
 CheckoutLoop:
-	mov edx, OFFSET paymentHeader
-	call WriteString
-	call ReadInt
+	call Clrscr
+    mov edx, OFFSET paymentHeader
+    call WriteString
+    call ReadInt
+    call CrLf
+	call DisplayFinalTotalFormatted
 	call CrLf
 
-	cmp eax, 1
-	je PaywithCard
-	cmp eax, 2
-	je PaywithEWallet
-	cmp eax, 3
-	je PaywithOnlineBanking
-	cmp eax, 4
-	je CancelPayment
-	
-	; Invalid choice
-	mov edx, OFFSET InvalidChoice
-	call WriteString
-	jmp CheckoutLoop
+    cmp eax, 1
+    je PaywithCard
+    cmp eax, 2
+    je PaywithEWallet
+    cmp eax, 3
+    je PaywithOnlineBanking
+    cmp eax, 4
+    je PaywithRewardPoints
+    cmp eax, 5
+    je CancelPayment
+    
+    ; Invalid choice
+    mov edx, OFFSET InvalidChoice
+    call WriteString
+    jmp CheckoutLoop
 
 PaywithCard:
-	call ProcessCardPayment
-	jmp PaymentEnd
+    call ProcessCardPayment
+    jmp PaymentEnd
 
 PaywithEWallet:
-	call ProcessEWalletPayment
-	jmp PaymentEnd
+    call ProcessEWalletPayment
+    jmp PaymentEnd
 
 PaywithOnlineBanking:
-	call ProcessOnlineBankingPayment
-	jmp PaymentEnd
+    call ProcessOnlineBankingPayment
+    jmp PaymentEnd
+
+PaywithRewardPoints:
+    ; Calculate final total in cents
+    call CalculateFinalTotalInCents   ; EAX = total (cents)
+    mov finalTotalCents, eax          ; Store total (cents)
+
+    ; Calculate required points = total (cents) ÷ 10
+    mov eax, finalTotalCents
+    mov ebx, 10
+    xor edx, edx
+    div ebx                           ; EAX = required points
+    mov ecx, eax                      ; ECX = required points
+
+    call ProcessRewardPointsPayment   ; EAX = 1 success, 0 fail
+    cmp eax, 1
+    jne CheckoutLoop
+
 
 CancelPayment:
-	call UserPortal
-	jmp PaymentEnd
+    call UserPortal
+    jmp PaymentEnd
 
 PaymentEnd:
-	pop edi
-	pop esi
-	pop edx
-	pop ecx
-	pop ebx
-	pop eax
-	ret
+    pop edi
+    pop esi
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    ret
 CheckoutPayment ENDP
 
 ; Update ProcessCardPayment procedure to include reward points
@@ -2724,8 +2876,10 @@ CardPaymentLoop:
 
 	; Generate receipt
 	call GenerateReceipt
-
+	call CrLf
+	call GenerateETicket
 	call UserPortal
+
 	jmp ProcessCardEnd
 
 CardValidationFailed:
@@ -3096,7 +3250,8 @@ ShowQRCode:
 
 	; Generate receipt
 	call GenerateReceipt
-
+	call CrLf
+	call GenerateETicket
 	call UserPortal
 
 	pop edx
@@ -3192,13 +3347,103 @@ GetBankingCredentials:
 
 	; Generate receipt
 	call GenerateReceipt
-
+	call CrLf
+	call GenerateETicket
 	call UserPortal
 
 	pop edx
 	pop eax
 	ret
 ProcessOnlineBankingPayment ENDP
+
+; ProcessRewardPointsPayment
+ProcessRewardPointsPayment PROC
+    ; Input: ECX = required points for this purchase
+    push ebx
+    push ecx
+    push edx
+    push esi
+    push edi
+
+    ; Get current user's reward points
+    mov eax, 4                        ; field index for reward points
+    mov ebx, currentUserIndex
+    call GetUserField                 ; EDI = pointer to reward points
+    movzx eax, WORD PTR [edi]         ; EAX = current reward points (WORD)
+    mov ebx, eax                      ; EBX = available points
+
+    ; Show available points
+    mov edx, OFFSET availableMsg
+    call WriteString
+    mov eax, ebx
+    call WriteDec
+    call CrLf
+
+    ; Show required points
+    mov edx, OFFSET requiredMsg
+    call WriteString
+    mov eax, ecx                      ; ECX = required points
+    call WriteDec
+    call CrLf
+
+    ; Compare available vs required
+    cmp ebx, ecx
+    jb NotEnoughPoints                ; if available < required
+
+    ; Confirm payment with reward points
+    mov edx, OFFSET confirmBookingPrompt
+    call WriteString
+    call ValidateYNInput
+    
+    cmp al, 'Y'
+    je ConfirmRewardPayment
+    cmp al, 'y'
+    je ConfirmRewardPayment
+    
+    ; User cancelled
+    mov eax, 0
+    jmp EndProcessRewardPointsPayment
+
+ConfirmRewardPayment:
+    ; Deduct required points
+    sub ebx, ecx
+    mov WORD PTR [edi], bx           ; Store updated points (WORD)
+
+    ; Success
+    mov edx, OFFSET successMsg
+    call WriteString
+    call CrLf
+	call ProcessSeatBooking
+	call GenerateReceipt
+	call CrLf
+
+	call GenerateETicket
+	call UserPortal
+
+    mov eax, 1                        ; success flag
+    jmp EndProcessRewardPointsPayment
+
+NotEnoughPoints:
+    mov edx, OFFSET notEnoughPointsMsg
+    call WriteString
+    call CrLf
+
+    ; Show "press any key to continue"
+    mov edx, OFFSET pressAnyKeyMsg
+    call WriteString
+    call ReadChar
+    call CrLf
+
+    mov eax, 0                        ; fail flag
+
+EndProcessRewardPointsPayment:
+    pop edi
+    pop esi
+    pop edx
+    pop ecx
+    pop ebx
+    ret
+ProcessRewardPointsPayment ENDP
 
 ; Generate receipt after successful payment
 GenerateReceipt PROC
@@ -3306,7 +3551,7 @@ PrintEquals:
 	call WriteString
 
 	; Wait for user to continue
-	mov edx, OFFSET returnToPortal
+	mov edx, OFFSET pressAnyKeyMsg
 	call WriteString
 	call ReadChar
 
@@ -3318,6 +3563,137 @@ PrintEquals:
 	pop eax
 	ret
 GenerateReceipt ENDP
+
+GenerateETicket PROC
+    push eax
+    push ebx
+    push ecx
+    push edx
+    push esi
+    push edi
+
+    call Clrscr
+
+    ;header
+    mov edx, OFFSET eticketHeader
+    call WriteString
+    call CrLf
+
+    ;time/date
+    INVOKE GetLocalTime, ADDR sysTime
+
+    mov edx, OFFSET receiptDateLabel
+    call WriteString
+    movzx eax, sysTime.wYear
+    call WriteDec
+    mov edx, OFFSET slashChar
+    call WriteString
+    movzx eax, sysTime.wMonth
+    call WriteDec
+    mov edx, OFFSET slashChar
+    call WriteString
+    movzx eax, sysTime.wDay
+    call WriteDec
+    call CrLf
+
+    mov edx, OFFSET receiptTimeLabel
+    call WriteString
+    movzx eax, sysTime.wHour
+    call WriteDec
+    mov edx, OFFSET colonChar
+    call WriteString
+    movzx eax, sysTime.wMinute
+    cmp eax, 10
+    jae SkipLead0Min
+    mov al, '0'
+    call WriteChar
+
+SkipLead0Min:
+    movzx eax, sysTime.wMinute
+    call WriteDec
+    call CrLf
+    call CrLf
+
+    ;user
+    mov edx, OFFSET receiptCustomerLabel
+    call WriteString
+    mov edx, OFFSET currentUser
+    call WriteString
+    call CrLf
+    call CrLf
+
+    ;movie
+    mov edx, OFFSET movieSelected
+    call WriteString
+    mov eax, currentMovie
+    call DisplayMovieName
+    call CrLf
+
+    mov edx, OFFSET showtimeSelected
+    call WriteString
+    mov eax, currentShowtime
+    call DisplayShowtimeName
+    call CrLf
+
+    mov edx, OFFSET seatTypeSelected
+    call WriteString
+    call DisplaySeatTypeName
+    call CrLf
+
+    mov edx, OFFSET seatsBooked
+    call WriteString
+    mov eax, currentSeatQty
+    call WriteDec
+    mov edx, OFFSET seatsText
+    call WriteString
+    call CrLf
+
+    ;combo
+    cmp currentCombo, 0
+    je NoComboET
+    mov edx, OFFSET comboSelectedText
+    call WriteString
+    call DisplayComboName
+    call CrLf
+
+    mov edx, OFFSET comboQtyText
+    call WriteString
+    mov eax, currentComboQty
+    call WriteDec
+    call CrLf
+NoComboET:
+
+    call CrLf
+
+    ;price
+    mov edx, OFFSET finalTotalText
+    call WriteString
+    call CalculateAndDisplayFinalTotal
+    call CrLf
+    call CrLf
+
+    ;QR
+    mov edx, OFFSET QRImage2
+    call WriteString
+    call CrLf
+
+    ;footer
+    mov edx, OFFSET eticketFooter
+    call WriteString
+    call CrLf
+
+    mov edx, OFFSET returnToPortal
+    call WriteString
+    call ReadChar
+
+    pop edi
+    pop esi
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    ret
+GenerateETicket ENDP
 
 ; Display ticket pricing with proper alignment
 DisplayTicketPricing PROC

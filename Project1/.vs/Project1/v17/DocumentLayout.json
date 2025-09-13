@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\new1.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\new1.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\run.asm||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{61DD16A5-BE39-4447-8803-75DB6F6F0837}|Project1\\Project1.vcxproj|solutionrelative:Project1\\run.asm||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
   "DocumentGroupContainers": [
@@ -27,14 +27,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "new1.asm",
-              "DocumentMoniker": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\new1.asm",
-              "RelativeDocumentMoniker": "Project1\\new1.asm",
-              "ToolTip": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\new1.asm",
-              "RelativeToolTip": "Project1\\new1.asm",
-              "ViewState": "AgIAAF4MAAAAAAAAAAAqwIAMAAAgAAAAAAAAAA==",
+              "Title": "run.asm",
+              "DocumentMoniker": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\run.asm",
+              "RelativeDocumentMoniker": "Project1\\run.asm",
+              "ToolTip": "C:\\Users\\Mok\\Documents\\GitHub\\Point-of-Sales-system\\Project1\\Project1\\run.asm",
+              "RelativeToolTip": "Project1\\run.asm",
+              "ViewState": "AgIAANoFAAAAAAAAAAD4v+YFAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-09-11T05:55:05.185Z",
+              "WhenOpened": "2025-09-13T07:17:00.862Z",
               "EditorCaption": ""
             }
           ]
