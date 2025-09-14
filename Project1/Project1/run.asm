@@ -5696,25 +5696,25 @@ ContinueSeatSelection:
 	jmp SeatLoop
 
 ValidSeatChoice:
-	mov currentSeatType, eax
-	
-	; Get seat quantity from user
-	call GetSeatQuantity
-	cmp eax, 0
-	je SeatLoop  ; If quantity selection failed, go back to seat selection
-
-	;Check if enough seats are available
-	call CheckSeatAvailability
-	mov ebx, currentSeatQty
-
-	cmp eax, ebx  ; Compare available seats with requested quantity
-	jl NotEnoughSeats  ;renamed label to avoid conflict
-	
-	; After quantity selection and availability check, ask for combo
-	call SelectCombo
-	
-	call ShowBookingSummary
-	jmp SeatLoop
+    mov currentSeatType, eax
+    
+    call GetSeatQuantity
+    cmp eax, 0
+    je SeatLoop
+    
+    call CheckSeatAvailability
+    mov ebx, currentSeatQty
+    cmp eax, ebx
+    jl NotEnoughSeats
+    
+    call SelectCombo
+    
+    call ShowBookingSummary
+    cmp eax, 0               ; Check if booking was cancelled
+    je BackToShowtimes       ; If cancelled, go back to showtimes
+    ; If booking was completed (eax = 1), the payment procedures 
+    ; should handle returning to UserPortal
+    jmp SeatLoop
 
 BackToShowtimes:
 	call WaitMsg
@@ -5961,29 +5961,37 @@ NoComboSelected:
     call CrLf
     call CrLf
 
-    ; 1. Confirm booking first
+  ; 1. Confirm booking first
     mov edx, OFFSET confirmBookingPrompt
     call WriteString
-    call ValidateYNInput    ; Wait for user input
+    call ValidateYNInput
 
     cmp al, 'Y'
     je AskPayment
     cmp al, 'y'
     je AskPayment
-    ; If not confirmed, return to user portal
-    call UserPortal
+    
+    ; If not confirmed, set a flag or return value to indicate cancellation
+    mov eax, 0              ; 0 = booking cancelled
     jmp BookingSummaryExit
 
 AskPayment:
-    ; 2. Proceed to payment
     mov edx, OFFSET paymentPrompt
     call WriteString
-    call ValidateYNInput    ; Wait for user input
+    call ValidateYNInput
 
     cmp al, 'Y'
     je CheckoutPayment
     cmp al, 'y'
     je CheckoutPayment
+    
+    mov eax, 0              ; 0 = payment cancelled
+    jmp BookingSummaryExit
+
+CheckoutPayment:
+    call CheckoutPayment  ; Add the missing "call" instruction
+    ; After payment processing, the procedure will return here
+    mov eax, 1  ; 1 = payment completed successfully
     jmp BookingSummaryExit
 
 BookingSummaryExit:
@@ -6177,16 +6185,15 @@ CheckoutPayment PROC
     push edx
     push esi
     push edi
-    call Clrscr
 
 CheckoutLoop:
-	call Clrscr
+    call Clrscr
     mov edx, OFFSET paymentHeader
     call DisplayHeaderGreen
     call ReadInt
     call CrLf
-	call DisplayFinalTotalFormatted
-	call CrLf
+    call DisplayFinalTotalFormatted
+    call CrLf
 
     cmp eax, 1
     je PaywithCard
@@ -6200,7 +6207,7 @@ CheckoutLoop:
     je CancelPayment
     
     ; Invalid choice
-	call DisplayInvalidChoice
+    call DisplayInvalidChoice
     jmp CheckoutLoop
 
 PaywithCard:
@@ -6224,16 +6231,17 @@ PaywithRewardPoints:
     mov eax, finalTotalCents
     mov ebx, 10
     xor edx, edx                      ; Clear remainder
-    div ebx                           ; EAX = required points (9540 ÷ 10 = 954)
+    div ebx                           ; EAX = required points
     mov ecx, eax                      ; ECX = required points
 
     call ProcessRewardPointsPayment   ; EAX = 1 success, 0 fail
     cmp eax, 1
     jne CheckoutLoop
-
+    jmp PaymentEnd
 
 CancelPayment:
-    call UserPortal
+    ; Return to booking summary instead of calling UserPortal directly
+    mov eax, 0  ; 0 = payment cancelled
     jmp PaymentEnd
 
 PaymentEnd:
