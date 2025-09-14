@@ -291,8 +291,8 @@ MovieStatus DWORD Movie_MAXCount DUP(?)
 
 ; Initial Movies
 initMovie1  BYTE "Avatar: The Way of Fire ", 0
-initMovie2  BYTE "Avengers: End Game ", 0
-initMovie3  BYTE "Titanic ", 0
+initMovie2  BYTE "Engers: End Game ", 0
+initMovie3  BYTE "Tatanic ", 0
 
 initDesc1   BYTE "Epic sci-fi adventure with stunning visuals. ", 0
 initDesc2   BYTE "Heroes unite to save the universe. ", 0
@@ -646,12 +646,12 @@ paymentHeader	BYTE 0dh, 0ah, "==================================================
 
 	; Movie names for display
 	movie1_2D BYTE "Avatar: The Way of Fire", 0
-	movie2_2D BYTE "Avengers: End Game", 0
-	movie3_2D BYTE "Titanic", 0
+	movie2_2D BYTE "Eengers: End Game", 0
+	movie3_2D BYTE "Tatanic", 0
 
 	movie1_IMAX BYTE "Avatar: The Way of Fire", 0
-	movie2_IMAX BYTE "Avengers: End Game", 0
-	movie3_IMAX BYTE "Titanic", 0
+	movie2_IMAX BYTE "Engers: End Game", 0
+	movie3_IMAX BYTE "Tatanic", 0
 
 	movieType2D BYTE "2D", 0
 	movieTypeIMAX BYTE "IMAX", 0
