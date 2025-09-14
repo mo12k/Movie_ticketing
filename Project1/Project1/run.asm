@@ -2792,7 +2792,7 @@ PriceOperation:
 	mov edx, OFFSET menu2
 	call WriteString
 
-	mov edx, OFFSET prompt2
+	mov edx, OFFSET prompt4
 	call WriteString
 	call ReadChar
 	call WriteChar
