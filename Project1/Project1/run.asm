@@ -6406,37 +6406,66 @@ GetCardExpiry ENDP
 
 ; Update the GetCardCVV procedure to not loop internally:
 ; Get and validate CVV - Single attempt version
+; Alternative CVV input with character-by-character validation
 GetCardCVV PROC
 	push ebx
 	push ecx
 	push esi
+	push edx
 
 	; Clear buffer
+	mov edi, OFFSET cardCVV
 	mov ecx, 4
-	mov esi, OFFSET cardCVV
-	call ClearBuffer
+	xor eax, eax
+	rep stosb
 
 	mov edx, OFFSET cardCVVPrompt
 	call WriteString
-	mov edx, OFFSET cardCVV
-	mov ecx, 4
-	call ReadString
 
-	; Validate CVV (must be exactly 3 digits)
+	; Read exactly 3 characters
 	mov esi, OFFSET cardCVV
-	call ValidateCardCVV
-	cmp eax, 1
-	je CVVValid
+	mov ecx, 0
+
+ReadCVVLoop:
+	cmp ecx, 3
+	jae CVVInputComplete
+	
+	call ReadChar
+	
+	; Check if it's a digit
+	cmp al, '0'
+	jl InvalidCVVChar
+	cmp al, '9'
+	jg InvalidCVVChar
+	
+	; Store and echo the character
+	mov [esi], al
+	call WriteChar
+	inc esi
+	inc ecx
+	jmp ReadCVVLoop
+
+InvalidCVVChar:
+	; If invalid character, don't store it
+	jmp ReadCVVLoop
+
+CVVInputComplete:
+	call CrLf
+	
+	; Check if we got exactly 3 digits
+	cmp ecx, 3
+	je CVVInputValid
 
 	mov edx, OFFSET cardCVVError
 	call WriteString
-	mov eax, 0  ; Return failure
+	mov eax, 0
 	jmp GetCardCVVEnd
 
-CVVValid:
-	mov eax, 1  ; Return success
+CVVInputValid:
+	mov eax, 1
 
 GetCardCVVEnd:
+	pop edx
 	pop esi
 	pop ecx
 	pop ebx
@@ -6556,12 +6585,19 @@ ValidateExpiryEnd:
 	ret
 ValidateCardExpiry ENDP
 
-; Validate CVV (3 digits only)
+; Add this debugging version to check what's actually in the buffer
 ValidateCardCVV PROC
 	push ebx
 	push ecx
 	push esi
+	push edx
 
+	; Debug: Show what we're validating
+	mov edx, OFFSET cardCVV
+	call WriteString
+	call CrLf
+
+	mov esi, OFFSET cardCVV  ; Reset ESI to start of buffer
 	mov ecx, 0
 
 ValidateCVVLoop:
@@ -6592,6 +6628,7 @@ CVVValidResult:
 	mov eax, 1
 
 ValidateCVVEnd:
+	pop edx
 	pop esi
 	pop ecx
 	pop ebx
