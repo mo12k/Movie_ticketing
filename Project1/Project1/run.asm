@@ -92,7 +92,7 @@ predefUser1 BYTE "user1", 0
 predefPass1 BYTE "pass1", 0
 predefEmail1 BYTE "user1@gmail.com",0
 predefPhone1 BYTE "0123456789",0
-predefReward1 WORD 100
+predefReward1 WORD 200
 
 predefUser2 BYTE "user2", 0
 predefPass2 BYTE "pass2", 0
@@ -947,7 +947,7 @@ NoRMComboPrice:
 CalculateFinalTotalInRM ENDP
 
 ; ==========================================================
-; Calculate final total in cents (no truncation)
+; Calculate final total in cents (no truncation) - FIXED
 ; ==========================================================
 CalculateFinalTotalInCents PROC
     push ebx
@@ -970,13 +970,11 @@ Use2DPrices:
     mov ebx, OFFSET seatPrices2D
 
 GetSeatPrice:
-    mov ecx, [ebx + eax*4]       ; Seat unit price (RM)
+    mov ecx, [ebx + eax*4]       ; Seat unit price (already in cents)
     mov eax, currentSeatQty
-    mul ecx                      ; eax = seatQty * unit price (RM)
+    mul ecx                      ; eax = seatQty * unit price (cents)
 
-    ; Convert to cents
-    mov ebx, 100
-    mul ebx                      ; eax = subtotal in cents
+    ; DON'T convert to cents - prices are already in cents!
     mov esi, eax                 ; esi = ticket subtotal (cents)
 
     ; ---------- Combo ----------
@@ -986,7 +984,7 @@ GetSeatPrice:
     mov eax, currentCombo
     dec eax
     mov ebx, OFFSET comboPrices
-    mov ecx, [ebx + eax*4]       ; Single combo price (cents)
+    mov ecx, [ebx + eax*4]       ; Single combo price (already in cents)
 
     mov eax, currentComboQty
     mul ecx                      ; eax = combo total (cents)
@@ -6224,10 +6222,12 @@ PaywithRewardPoints:
     call CalculateFinalTotalInCents   ; EAX = total (cents)
     mov finalTotalCents, eax          ; Store total (cents)
 
-    ; Calculate required points = total (cents) ÷ 1 (1 cent = 1 point)
+    ; Calculate required points = total (cents) ÷ 10 (10 cents = 1 point)
     mov eax, finalTotalCents
-    ; Remove the division by 10 - use cents directly as points
-    mov ecx, eax                      ; ECX = required points (1:1 ratio)
+    mov ebx, 10
+    xor edx, edx                      ; Clear remainder
+    div ebx                           ; EAX = required points (9540 ÷ 10 = 954)
+    mov ecx, eax                      ; ECX = required points
 
     call ProcessRewardPointsPayment   ; EAX = 1 success, 0 fail
     cmp eax, 1
