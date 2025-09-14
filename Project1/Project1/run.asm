@@ -31,7 +31,7 @@ mainMenuMsg BYTE 0dh, 0ah, "MAIN MENU:", 0dh, 0ah
 ; ========== AUTHENTICATION SYSTEM ==========
 ; Admin default credentials
 adminUsername BYTE "admin", 0
-adminPassword BYTE "123", 0
+adminPassword BYTE "@96iT2", 0
 
 ; Login interface messages
 adminLoginHeader BYTE 0dh, 0ah, "=== ADMIN LOGIN ===", 0dh, 0ah, 0
