@@ -6224,12 +6224,10 @@ PaywithRewardPoints:
     call CalculateFinalTotalInCents   ; EAX = total (cents)
     mov finalTotalCents, eax          ; Store total (cents)
 
-    ; Calculate required points = total (cents) ÷ 10
+    ; Calculate required points = total (cents) ÷ 1 (1 cent = 1 point)
     mov eax, finalTotalCents
-    mov ebx, 10
-    xor edx, edx
-    div ebx                           ; EAX = required points
-    mov ecx, eax                      ; ECX = required points
+    ; Remove the division by 10 - use cents directly as points
+    mov ecx, eax                      ; ECX = required points (1:1 ratio)
 
     call ProcessRewardPointsPayment   ; EAX = 1 success, 0 fail
     cmp eax, 1
