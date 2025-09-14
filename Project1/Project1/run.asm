@@ -878,7 +878,6 @@ AwardPointsEnd:
 AwardRewardPoints ENDP
 
 ; Calculate final total in whole RM (for reward points calculation)
-; FIXED: Calculate final total in whole RM (for reward points calculation)
 CalculateFinalTotalInRM PROC
 	push ebx
 	push ecx
@@ -947,7 +946,7 @@ NoRMComboPrice:
 CalculateFinalTotalInRM ENDP
 
 ; ==========================================================
-; Calculate final total in cents (no truncation) - FIXED
+; Calculate final total in cents (no truncation)
 ; ==========================================================
 CalculateFinalTotalInCents PROC
     push ebx
@@ -1240,7 +1239,7 @@ AdminPortalEnd:
 	ret
 AdminPortal ENDP
 
-; Track revenue from completed transaction - FIXED
+; Track revenue from completed transaction
 TrackRevenue PROC
     push eax
     push ebx
@@ -1328,7 +1327,7 @@ TrackMovieRevenue:
     ; Track revenue by movie for THIS transaction
     mov eax, currentMovie
     dec eax  ; Convert to 0-based
-    ; FIXED: Allow tracking all movies within the allocated array bounds
+    ;Allow tracking all movies within the allocated array bounds
     cmp eax, Movie_MAXCount
     jae TrackCounters
     
@@ -1727,7 +1726,7 @@ DisplaySeatTypeRevenue PROC
     ret
 DisplaySeatTypeRevenue ENDP
 
-; Display revenue amount with proper decimal formatting - FIXED
+; Display revenue amount with proper decimal formatting
 DisplayRevenueAmount PROC
     push eax
     push ebx
@@ -1933,7 +1932,7 @@ DisplayAllLoop:
     mov edx, esi
     call WriteString
     
-    ; Show status - FIXED to use correct status variables
+    ; Show status
     push ecx
     mov eax, ebx
     dec eax
@@ -1997,7 +1996,7 @@ InitializeMovieData PROC
 	mov ecx, SIZEOF initDesc1
 	rep movsb
 
-	; FIXED: Initialize showtimes for Movie 1 with proper string copying
+	;Initialize showtimes for Movie 1 with proper string copying
 	mov edi, OFFSET MovieShow
 	
 	; Copy "10:00" manually
@@ -2058,7 +2057,7 @@ InitializeMovieData PROC
 	mov ecx, SIZEOF initDesc2
 	rep movsb
 
-	; FIXED: Initialize showtimes for Movie 2
+	;Initialize showtimes for Movie 2
 	mov edi, OFFSET MovieShow
 	add edi, MAXShowtimes * TimeSize  ; Move to Movie 2's showtimes
 	
@@ -2120,7 +2119,7 @@ InitializeMovieData PROC
 	mov ecx, SIZEOF initDesc3
 	rep movsb
 
-	; FIXED: Initialize showtimes for Movie 3
+	; Initialize showtimes for Movie 3
 	mov edi, OFFSET MovieShow
 	add edi, 2 * MAXShowtimes * TimeSize  ; Move to Movie 3's showtimes
 	
@@ -2327,7 +2326,7 @@ pressEnter:
 	ret
 displayMovieList ENDP
 
-; FIXED: AddNewMovie procedure with proper string copying
+;AddNewMovie procedure with proper string copying
 AddNewMovie PROC
 	push eax
 	push ebx
@@ -2374,7 +2373,7 @@ ConfirmMovie:
 	jmp ConfirmMovie
 
 SaveMovie:
-	; FIXED: Update STATIC system (admin view) with proper string copying
+	;Update STATIC system (admin view) with proper string copying
 	mov eax, MovieCount 
 	mov ebx, Movie_NameSize 
 	mul ebx  ; EAX = offset for this movie's name
@@ -4288,7 +4287,7 @@ ViewProfileLoop:
 	
 	mov edx, OFFSET editProfilePrompt
 	call WriteString
-	call ValidateYNInput	; <-- FIX: Use validation for Y/N input
+	call ValidateYNInput	
 	cmp al, 'Y'
 	je CallEditProfile
 	cmp al, 'y'
@@ -4806,7 +4805,7 @@ CountDone:
     ret
 CountActiveMovies ENDP
 
-; Display dynamic 2D movies - FIXED to show correct range
+; Display dynamic 2D movies 
 DisplayDynamic2DMovies PROC
     push eax
     push ebx
@@ -4856,7 +4855,7 @@ SkipInactiveMovie:
     jmp DisplayMovieLoop
     
 DisplayBackOption:
-    ; FIXED: Display complete range
+    ; Display complete range
     mov eax, ebx
     call WriteDec
     mov edx, OFFSET movieOptionSuffix
@@ -4907,7 +4906,7 @@ DisplayBackOption:
     call WriteChar
     call CrLf
     
-    ; FIXED: Display complete footer with range
+    ;Display complete footer with range
     mov al, '='
     mov ecx, 35
 PrintEquals2D:
@@ -4955,7 +4954,7 @@ PrintEquals2D:
     call WriteDec
     mov al, ')'
     call WriteChar
-    mov al, ':'  ; FIXED: Complete the incomplete mov instruction
+    mov al, ':'  ; Complete the incomplete mov instruction
     call WriteChar
     mov al, ' '
     call WriteChar
@@ -5031,7 +5030,7 @@ ShowIMAXMovieEnd:
     ret
 ShowIMAXMovies ENDP
 
-; Display dynamic IMAX movies - FIXED to show complete range
+; Display dynamic IMAX movies 
 DisplayDynamicIMAXMovies PROC
     push eax
     push ebx
@@ -5091,7 +5090,7 @@ SkipInactiveIMAXMovie:
     jmp DisplayIMAXMovieLoop
     
 DisplayIMAXBackOption:
-    ; FIXED: Display complete range
+    ;Display complete range
     mov eax, ebx
     call WriteDec
     mov edx, OFFSET movieOptionSuffix
@@ -5142,7 +5141,7 @@ DisplayIMAXBackOption:
     call WriteChar
     call CrLf
     
-    ; FIXED: Display complete footer with range
+    ; Display complete footer with range
     mov al, '='
     mov ecx, 35
 PrintEqualsIMAX:
@@ -5327,7 +5326,7 @@ ShowShowtimesEnd:
     ret
 ShowShowtimes ENDP
 
-; Dynamic showtime display procedure - FIXED to handle new movies correctly
+; Dynamic showtime display procedure
 DisplayDynamicShowtimes PROC
     pushad
     
@@ -5606,7 +5605,7 @@ DisplayIMAXSeatMenu PROC
     ret
 DisplayIMAXSeatMenu ENDP
 
-; Helper procedure to display price in RM format - COMPLETELY FIXED
+; Helper procedure to display price in RM format
 DisplayPriceInRM PROC
     push eax
     push ebx
@@ -5648,7 +5647,7 @@ TwoDigitCents:
     ret
 DisplayPriceInRM ENDP
 
-; Show seat selection with quantity input - FIXED to handle invalid choices
+; Show seat selection with quantity input
 ShowSeatSelection PROC
 	push eax
 	push ebx
@@ -5664,12 +5663,12 @@ SeatLoop:
 	cmp currentMovieType, 0
 	je Show2DSeats
 	
-	; FIXED: Use the correct symbol name that exists in your data section
+	;Use the correct symbol name that exists in your data section
 	call DisplayIMAXSeatMenu
 	jmp ContinueSeatSelection
 
 Show2DSeats:
-	; FIXED: Use the correct symbol name that exists in your data section
+	;Use the correct symbol name that exists in your data section
 	call Display2DSeatMenu
 
 ContinueSeatSelection:
@@ -5692,7 +5691,7 @@ ContinueSeatSelection:
 	cmp eax, 4
 	je BackToShowtimes
 	
-	; FIXED: Handle invalid choices properly
+	;Handle invalid choices properly
 	call DisplayInvalidChoice
 	jmp SeatLoop
 
@@ -5709,7 +5708,7 @@ ValidSeatChoice:
 	mov ebx, currentSeatQty
 
 	cmp eax, ebx  ; Compare available seats with requested quantity
-	jl NotEnoughSeats  ; Fixed: renamed label to avoid conflict
+	jl NotEnoughSeats  ;renamed label to avoid conflict
 	
 	; After quantity selection and availability check, ask for combo
 	call SelectCombo
@@ -5722,7 +5721,7 @@ BackToShowtimes:
 	call Clrscr
 	jmp ShowSeatSelectionEnd
 
-NotEnoughSeats:  ; Fixed: renamed from InsufficientSeats
+NotEnoughSeats:  ;renamed from InsufficientSeats
 	mov edx, OFFSET insufficientSeats
 	call WriteString
 	call WaitMsg
@@ -5997,7 +5996,7 @@ BookingSummaryExit:
     ret
 ShowBookingSummary ENDP
 
-; FIXED: Calculate subtotal correctly 
+;Calculate subtotal correctly 
 CalculateAndDisplaySubtotal PROC
 	push eax
 	push ebx
@@ -6081,7 +6080,6 @@ DisplaySubtotalTwoDigits:
 CalculateAndDisplaySubtotal ENDP
 
 ; Calculate and display SST amount (6% of subtotal)
-; FIXED: Calculate and display SST amount (6% of subtotal)
 CalculateAndDisplaySST PROC
 	push eax
 	push ebx
@@ -7375,7 +7373,7 @@ DisplaySeconds:
 	ret
 DisplayReceiptDateTime ENDP
 
-; Display movie name - FIXED to use dynamic movie names from MovieName database
+; Display movie name
 DisplayMovieName PROC
     push eax
     push ebx
@@ -7490,7 +7488,6 @@ SeatTypeEnd:
 DisplaySeatTypeName ENDP
 
 ; Calculate and display total price
-; FIXED: Calculate and display total price with proper decimal formatting
 CalculateAndDisplayPrice PROC
 	push eax
 	push ebx
@@ -8072,7 +8069,6 @@ DisplayComboPriceEnd:
 DisplayComboPrice ENDP
 
 ; Calculate and display final total (tickets + combo)
-; FIXED: Calculate and display final total (tickets + combo)
 CalculateAndDisplayFinalTotal PROC
 	push eax
 	push ebx
