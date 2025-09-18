@@ -176,15 +176,13 @@ seatOptionEnd BYTE ")", 0
 rmPrefix BYTE "RM", 0
 
 seatMenuFooter BYTE "4. Back to Showtime Selection", 0dh, 0ah
-               BYTE "===================================", 0dh, 0ah
-               BYTE "Select a seat type (1-4): ", 0
+               BYTE "===================================", 0dh, 0ah,0
 
 
 seatSelectionPrompt BYTE "Select a seat type (1-4): ",0
 
 ; Seat pricing and availability - Updated to use admin-controlled pricing
-availableSeats DWORD MAXShowtimes * 3 DUP(50)  ; Initialize all seats to 50 for each type
-
+availableSeats DWORD (MAXShowtimes * 3 * 2) DUP(50)  ; 2 movie types, MAXShowtimes showtimes, 3 seat types each
 
 ; Dynamic menu components
 movies2DHeader BYTE "============ 2D MOVIES ============", 0dh, 0ah, 0
@@ -2163,38 +2161,80 @@ InitializeMovieData PROC
 	; Update pricing arrays from admin-controlled values
 	call UpdatePricingArrays
 
-	; Initialize seat availability
+	; Initialize seat availability for BOTH 2D and IMAX
 	mov edi, OFFSET availableSeats
-	mov ecx, MAXShowtimes * 3
+	mov ecx, MAXShowtimes * 3 * 2  ; 2 movie types * showtimes * seat types
 	mov eax, 0
 	rep stosd
 
-	; Set up the first 4 showtimes with your preferred seat counts
-	; Showtime 1: 10:00 AM
+	; ========== INITIALIZE 2D SEATS (Movie Type = 0) ==========
+	; Showtime 1: 10:00 AM (2D)
 	mov DWORD PTR [availableSeats], 50      ; Standard
 	mov DWORD PTR [availableSeats + 4], 20  ; Premium  
 	mov DWORD PTR [availableSeats + 8], 30  ; Couple
 
-	; Showtime 2: 1:00 PM
+	; Showtime 2: 1:00 PM (2D)
 	mov DWORD PTR [availableSeats + 12], 50  ; Standard
 	mov DWORD PTR [availableSeats + 16], 20  ; Premium
 	mov DWORD PTR [availableSeats + 20], 30  ; Couple
 
-	; Showtime 3: 4:00 PM  
+	; Showtime 3: 4:00 PM (2D)
 	mov DWORD PTR [availableSeats + 24], 50  ; Standard
 	mov DWORD PTR [availableSeats + 28], 20  ; Premium
 	mov DWORD PTR [availableSeats + 32], 30  ; Couple
 
-	; Showtime 4: 7:00 PM
+	; Showtime 4: 7:00 PM (2D)
 	mov DWORD PTR [availableSeats + 36], 50  ; Standard  
 	mov DWORD PTR [availableSeats + 40], 20  ; Premium
 	mov DWORD PTR [availableSeats + 44], 30  ; Couple
 
-	; For any new showtimes added (5th, 6th, etc.), set default values
+	; ========== INITIALIZE IMAX SEATS (Movie Type = 1) ==========
+	; Calculate offset for IMAX section: (MAXShowtimes * 3) DWORDS = offset in bytes
+	mov eax, MAXShowtimes
+	mov ebx, 3
+	mul ebx                     ; eax = MAXShowtimes * 3
+	shl eax, 2                  ; Convert to byte offset (* 4)
+	mov edi, OFFSET availableSeats
+	add edi, eax                ; Point to IMAX section
+
+	; Showtime 1: 10:00 AM (IMAX) - Different capacity for IMAX
+	mov DWORD PTR [edi], 30      ; Standard (fewer IMAX seats)
+	mov DWORD PTR [edi + 4], 15  ; Premium
+	mov DWORD PTR [edi + 8], 10  ; Couple
+
+	; Showtime 2: 1:00 PM (IMAX)
+	mov DWORD PTR [edi + 12], 30  ; Standard
+	mov DWORD PTR [edi + 16], 15  ; Premium
+	mov DWORD PTR [edi + 20], 10  ; Couple
+
+	; Showtime 3: 4:00 PM (IMAX)
+	mov DWORD PTR [edi + 24], 30  ; Standard
+	mov DWORD PTR [edi + 28], 15  ; Premium
+	mov DWORD PTR [edi + 32], 10  ; Couple
+
+	; Showtime 4: 7:00 PM (IMAX)
+	mov DWORD PTR [edi + 36], 30  ; Standard
+	mov DWORD PTR [edi + 40], 15  ; Premium
+	mov DWORD PTR [edi + 44], 10  ; Couple
+
+	; Initialize remaining showtimes for both 2D and IMAX with default values
+	; For 2D showtimes 5-20 (if any)
 	mov edi, OFFSET availableSeats
 	add edi, 48  ; Start after the first 4 showtimes (4 × 3 × 4 = 48 bytes)
-	mov ecx, (MAXShowtimes - 4) * 3  ; Remaining showtimes
-	mov eax, 50  ; Default seat count for new showtimes
+	mov ecx, (MAXShowtimes - 4) * 3  ; Remaining 2D showtimes
+	mov eax, 50  ; Default seat count for new 2D showtimes
+	rep stosd
+
+	; For IMAX showtimes 5-20 (if any)
+	mov eax, MAXShowtimes
+	mov ebx, 3
+	mul ebx                     ; eax = MAXShowtimes * 3
+	shl eax, 2                  ; Convert to byte offset
+	mov edi, OFFSET availableSeats
+	add edi, eax                ; Point to IMAX section
+	add edi, 48                 ; Start after first 4 IMAX showtimes
+	mov ecx, (MAXShowtimes - 4) * 3  ; Remaining IMAX showtimes
+	mov eax, 30                 ; Default seat count for new IMAX showtimes
 	rep stosd
 
 	pop edi
@@ -5675,7 +5715,7 @@ ContinueSeatSelection:
 	; Show available seats for each type
 	call DisplayAvailableSeats
 	
-	; MOVED: Now display the selection prompt AFTER the available seats
+	; NOW display the selection prompt AFTER the available seats
 	mov edx, OFFSET seatSelectionPrompt
 	call WriteString
 
@@ -5778,14 +5818,26 @@ GetSeatQuantity ENDP
 DisplayAvailableSeats PROC
     pushad
     
-    ; Calculate base index for current showtime
-    mov eax, currentShowtime
-    dec eax                     ; Convert to 0-based index
+    ; Calculate base index including movie type
+    ; Formula: (movieType * MAX_SHOWTIMES * 3) + (showtime_index * 3)
+    mov eax, currentMovieType   ; 0=2D, 1=IMAX
+    mov ebx, MAXShowtimes       ; Number of showtimes
+    mul ebx                     ; eax = movieType * MAXShowtimes
     mov ebx, 3                  ; 3 seat types per showtime
-    mul ebx                     ; eax = showtime_index * 3
+    mul ebx                     ; eax = movieType * MAXShowtimes * 3
+    
+    ; Add showtime offset
+    mov ebx, currentShowtime
+    dec ebx                     ; Convert to 0-based index
+    mov ecx, 3                  ; 3 seat types per showtime
+    push eax                    ; Save movie type offset
+    mov eax, ebx
+    mul ecx                     ; eax = showtime_index * 3
+    pop ebx                     ; Restore movie type offset
+    add eax, ebx                ; Final base index
     mov ebx, eax               ; Store base index
     
-	call crlf
+    call crlf
 
     ; Display Standard seats
     mov edx, OFFSET seatsAvailable
@@ -5794,14 +5846,12 @@ DisplayAvailableSeats PROC
     mov ecx, ebx
     mov eax, [eax + ecx*4]      ; Get standard seats count
     call WriteDec
-    mov al, ' '                 ; Add space character
+    mov al, ' '
     call WriteChar
     mov edx, OFFSET standardText
     call WriteString
+    call crlf
 
-	call crlf
-
-    
     ; Display Premium seats  
     mov edx, OFFSET seatsAvailable
     call WriteString
@@ -5810,12 +5860,11 @@ DisplayAvailableSeats PROC
     inc ecx                     ; Move to premium seats
     mov eax, [eax + ecx*4]
     call WriteDec
-    mov al, ' '                 ; Add space character
+    mov al, ' '
     call WriteChar
     mov edx, OFFSET premiumText
     call WriteString
-
-	call crlf
+    call crlf
     
     ; Display Couple seats
     mov edx, OFFSET seatsAvailable
@@ -5825,12 +5874,12 @@ DisplayAvailableSeats PROC
     add ecx, 2                  ; Move to couple seats
     mov eax, [eax + ecx*4]
     call WriteDec
-    mov al, ' '                 ; Add space character
+    mov al, ' '
     call WriteChar
     mov edx, OFFSET coupleText
     call WriteString
-	call crlf
-	call crlf
+    call crlf
+    call crlf
     
     popad
     ret
@@ -5842,32 +5891,36 @@ CheckSeatAvailability PROC
     push ecx
     push edx
     
-    ; Calculate seat index
-    mov eax, currentShowtime
-    dec eax                     ; Convert to 0-based
-    mov ebx, 3
-    mul ebx                     ; eax = showtime_index * 3
-    add eax, currentSeatType
-    dec eax                     ; Add seat type offset (0-based)
+    ; Calculate seat index including movie type
+    ; Formula: (movieType * MAX_SHOWTIMES * 3) + (showtime_index * 3) + (seatType - 1)
+    mov eax, currentMovieType   ; 0=2D, 1=IMAX
+    mov ebx, MAXShowtimes       ; Number of showtimes
+    mul ebx                     ; eax = movieType * MAXShowtimes
+    mov ebx, 3                  ; 3 seat types per showtime
+    mul ebx                     ; eax = movieType * MAXShowtimes * 3
     
-	; testing
-	;push eax
-	;push edx
-	;mov edx, OFFSET debugIndexMsg  ; 
-	;call WriteString
-	;mov edx, eax
-	;call WriteDec
-	;call CrLf
-	;pop edx
-	;pop eax
+    ; Add showtime offset
+    mov ebx, currentShowtime
+    dec ebx                     ; Convert to 0-based
+    mov ecx, 3
+    push eax                    ; Save movie type offset
+    mov eax, ebx
+    mul ecx                     ; eax = showtime_index * 3
+    pop ebx                     ; Restore movie type offset
+    add eax, ebx                ; Add movie type offset
+    
+    ; Add seat type offset
+    add eax, currentSeatType
+    dec eax                     ; Convert seat type to 0-based
 
-     ;Check availability
+    ; Check availability
     mov ebx, OFFSET availableSeats
-    mov eax, [ebx + eax*4]      ; store EAX
+    mov eax, [ebx + eax*4]      ; Get available seats
+    
     pop edx
     pop ecx
     pop ebx
-    ret                         ;
+    ret
 CheckSeatAvailability ENDP
 
 
@@ -7558,30 +7611,43 @@ CalculateAndDisplayPrice ENDP
 
 ; Process the actual seat booking (update available seats)
 ProcessSeatBooking PROC
-	push eax
-	push ebx
-	push ecx
-	push edx
-	
-	; Calculate seat index in availableSeats array
-	mov eax, currentShowtime
-	dec eax  ; Convert to 0-based
-	mov ebx, 3
-	mul ebx  ; eax = showtime_index * 3
-	add eax, currentSeatType
-	dec eax  ; Add seat type offset (0-based)
-	
-	; Update available seats
-	mov ebx, OFFSET availableSeats
-	mov ecx, [ebx + eax*4]  ; Get current available seats
-	sub ecx, currentSeatQty  ; Subtract booked seats
-	mov [ebx + eax*4], ecx  ; Store updated count
-	
-	pop edx
-	pop ecx
-	pop ebx
-	pop eax
-	ret
+    push eax
+    push ebx
+    push ecx
+    push edx
+    
+    ; Calculate seat index including movie type
+    mov eax, currentMovieType   ; 0=2D, 1=IMAX
+    mov ebx, MAXShowtimes
+    mul ebx                     ; eax = movieType * MAXShowtimes
+    mov ebx, 3
+    mul ebx                     ; eax = movieType * MAXShowtimes * 3
+    
+    ; Add showtime offset
+    mov ebx, currentShowtime
+    dec ebx                     ; Convert to 0-based
+    mov ecx, 3
+    push eax                    ; Save movie type offset
+    mov eax, ebx
+    mul ecx                     ; eax = showtime_index * 3
+    pop ebx                     ; Restore movie type offset
+    add eax, ebx                ; Add movie type offset
+    
+    ; Add seat type offset
+    add eax, currentSeatType
+    dec eax                     ; Convert to 0-based
+    
+    ; Update available seats
+    mov ebx, OFFSET availableSeats
+    mov ecx, [ebx + eax*4]      ; Get current available seats
+    sub ecx, currentSeatQty     ; Subtract booked seats
+    mov [ebx + eax*4], ecx      ; Store updated count
+    
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    ret
 ProcessSeatBooking ENDP
 
 GetCredentials PROC
